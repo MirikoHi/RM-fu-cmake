@@ -31,11 +31,40 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#define RED  0
+#define BLUE 1
 
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef struct 
+{
+	char     one_ring;
+	char     two_ring;
+	char     three_ring;
+	char     four_ring;
+	char     five_ring;
+	char     six_ring;
+	char     seven_ring;
+	char     eight_ring;
+	char     nine_ring;
+	char     ten_ring;
+}Rings_Key_t;
+
+typedef struct 
+{
+	char     one_ring_record;
+	char     two_ring_record;
+	char     three_ring_record;
+	char     four_ring_record;
+	char     five_ring_record;
+	char     six_ring_record;
+	char     seven_ring_record;
+	char     eight_ring_record;
+	char     nine_ring_record;
+	char     ten_ring_record;
+}Rings_Key_record_t;
 
 /* USER CODE END ET */
 

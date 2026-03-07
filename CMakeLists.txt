@@ -45,11 +45,19 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    Application/can/can_protocal.c
+    Application/can/CAN_receive.c
+    Application/can/CAN_send.c
+    Application/Flag_State/Flag_State.c
+    Application/WS2812/WS2812.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    Application/can
+    Application/Flag_State
+    Application/WS2812
 )
 
 # Add project symbols (macros)
