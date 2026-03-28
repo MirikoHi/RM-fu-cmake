@@ -54,7 +54,7 @@
 void WS_Load_rectangle(void);
 void WS_Load_frame_up(void);
 void WS_Load_frame_down(void);
-void WS_Load_Cross(void);
+void WS_Load_Circle(void);
 void WS_Load_Frame(void);
 
 void WS_WriteAll_RGB_FRAME_UP(uint8_t n_R, uint8_t n_G, uint8_t n_B);
