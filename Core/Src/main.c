@@ -53,6 +53,9 @@ uint16_t buffer_time;
 #define RED_NUM 150
 #define GREEN_NUM 150
 #define BLUE_NUM 150
+
+
+#define DEBUG_xzb // 荼debug标志位
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -127,6 +130,20 @@ int main(void)
   WS_WriteAll_RGB_REC(0, 0, 0);
   WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
   WS_CloseAll_Circle();
+
+#ifdef DEBUG_xzb
+  /* Debug 模式下，无 CAN 数据时强制启用本板工作状态 */
+  Board_Order_info[BOARD_NUMBER].Board_Work = 1;
+  Board_Order_info[BOARD_NUMBER].Set_Color = RED;
+  Board_Order_info[BOARD_NUMBER].Twinkle_state = 0;
+  Board_Order_info[BOARD_NUMBER].RainBow_Flag = 0;
+  Big_Fu_info[BOARD_NUMBER].Color = RED;
+  Big_Fu_info[BOARD_NUMBER].Last_Color = RED;
+  Big_Fu_info[BOARD_NUMBER].Hit_LED_state = 0;
+  Big_Fu_info[BOARD_NUMBER].Single_Hit_State = 0;
+  Big_Fu_info[BOARD_NUMBER].Twinkle_Already = 0;
+#endif
+
   while (1)
   {
     /* USER CODE END WHILE */
