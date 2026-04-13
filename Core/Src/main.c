@@ -48,7 +48,7 @@ uint16_t buffer_time;
 #define YES 1
 #define NO 0
 
-#define BOARD_NUMBER 4
+#define BOARD_NUMBER 4 // 烧
 
 #define RED_NUM 150
 #define GREEN_NUM 150
@@ -330,14 +330,14 @@ int main(void)
     Board_Info_Tx();
     /*读取微动开关状态*/
     Rings_Key.one_ring = 1; // HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13);
-    Rings_Key.two_ring = 1; // HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_14);
+    Rings_Key.two_ring = HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_14);
     Rings_Key.three_ring = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0);
     Rings_Key.four_ring = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_1);
     Rings_Key.five_ring = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_2);
     Rings_Key.six_ring = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_3);
     Rings_Key.seven_ring = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4);
     Rings_Key.eight_ring = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
-    Rings_Key.nine_ring = 1; // HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_6);
+    Rings_Key.nine_ring = HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_6);
     Rings_Key.ten_ring = 1;  // HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_7);
 
     // 按键按下时记录为击中，同时清空圆环
