@@ -357,6 +357,19 @@ int main(void)
       // 复位
       NVIC_SystemReset(); 
     }
+    if(Big_Fu_info[BOARD_NUMBER].Hit_LED_state == 1){
+      HAL_Delay(2000);
+      WS_WriteAll_RGB_FRAME_DOWN(0, 0, 0);
+      WS_WriteAll_RGB_FRAME(0, 0, 0);
+      WS_WriteAll_RGB_REC(0, 0, 0);
+      WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
+      WS_CloseAll_Circle();
+      HAL_Delay(1000);
+      // 关闭所有中断
+      __set_FAULTMASK(1); 
+      // 复位
+      NVIC_SystemReset(); 
+    }
 #endif
 
     // 按键按下时记录为击中，同时清空圆环
