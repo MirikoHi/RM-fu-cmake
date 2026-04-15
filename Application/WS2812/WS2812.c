@@ -38,119 +38,122 @@ int16_t Led_bite_cnt_frame=0;
 
 /*
    DMA PWM 
-   ¿ªÆôº¯Êı
+   å¼€å¯å‡½æ•°
 */
 
-void WS_Load_rectangle(void)  //PA8
+void WS_Load_rectangle(void)  //PA8 B4
 {
 
 	HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_1, (uint32_t *)send_Buf_rectangle, NUM_REC);
-  
+	// HAL_Delay(1);
 }
-void WS_Load_frame_up(void)//PC6
+void WS_Load_frame_up(void)//PC6 B6
 {
 	
 	HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, (uint32_t *)send_Buf_frame_up, NUM_FRAME_UP);
-	
+	// HAL_Delay(1);
 }
 	
-void WS_Load_frame_down(void)//PA1
+void WS_Load_frame_down(void)//PA1 B2
 {
 	
 	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, (uint32_t *)send_Buf_frame_down, NUM_FRAME_DOWN);
+	// HAL_Delay(1);
 }
 
-void WS_Load_Circle(void)//PA0
+void WS_Load_Circle(void)//PA0 B1
 {
 	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, (uint32_t *)send_Buf_Circle, NUM_CIRCLE);
+	// HAL_Delay(1);
 }
 
-void WS_Load_Frame(void)//PA9
+void WS_Load_Frame(void)//PA9 B3
 {
 	HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, (uint32_t *)send_Buf_frame, NUM_FRAME);
+	// HAL_Delay(1);
 }
 
-/*DMA½ÓÊÕÖĞ¶Ï»Øµ÷º¯Êı*/
+/*DMAæ¥æ”¶ä¸­æ–­å›è°ƒå‡½æ•°*/
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 
 }
 
-/********************	 LED¹Ø±Õº¯Êı   ***********************/
+/********************	 LEDå…³é—­å‡½æ•°   ***********************/
 
 
 /*
-	 ¹Ø±ÕPCBÉÏ±ß¿òº¯Êı
+	 å…³é—­PCBä¸Šè¾¹æ¡†å‡½æ•°
 */
 void WS_CloseAll_FRAME_UP(void)
 {
 	uint16_t i;
 	for (i = 0; i < PIXEL_NUM_FRAME_UP * 24; i++)
-		send_Buf_frame_up[i] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		send_Buf_frame_up[i] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 	for (i = PIXEL_NUM_FRAME_UP * 24; i < NUM_FRAME_UP; i++)
-		send_Buf_frame_up[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_frame_up[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 	WS_Load_frame_up();
 }
 /*
-	 ¹Ø±ÕPCBÏÂ±ß¿òº¯Êı
+	 å…³é—­PCBä¸‹è¾¹æ¡†å‡½æ•°
 */
 void WS_CloseAll_FRAME_DOWN(void)
 {
 	uint16_t i;
 	for (i = 0; i < (PIXEL_NUM_FRAME_DOWN) * 24; i++)
-		send_Buf_frame_down[i] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		send_Buf_frame_down[i] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 	for (i = PIXEL_NUM_FRAME_DOWN * 24; i < NUM_FRAME_DOWN; i++)
-		send_Buf_frame_down[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_frame_down[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 		
 	WS_Load_frame_down();
 }
 /*
-	 ¹Ø±Õ¼ıÍ·µÆÌõº¯Êı
+	 å…³é—­ç®­å¤´ç¯æ¡å‡½æ•°
 */
 void WS_CloseAll_RECTANGLE(void)
 {
 	uint16_t i;
 	for (i = 0; i < (PIXEL_NUM_REC) * 24; i++)
-		send_Buf_rectangle[i] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		send_Buf_rectangle[i] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 	for (i = PIXEL_NUM_REC * 24; i < NUM_REC; i++)
-		send_Buf_rectangle[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_rectangle[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 	
 	WS_Load_rectangle();
 	
 }
 
 /*
-	 ¹Ø±ÕPCB°Ğ»·º¯Êı
+	 å…³é—­PCBé¶ç¯å‡½æ•°
 */
 void WS_CloseAll_Circle(void)
 {
 	uint16_t i;
 	for (i = 0; i < (PIXEL_NUM_CIRCLE) * 24; i++)
-		send_Buf_Circle[i] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		send_Buf_Circle[i] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 	for (i = PIXEL_NUM_CIRCLE * 24; i < NUM_CIRCLE; i++)
-		send_Buf_Circle[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_Circle[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 	
 	
 	WS_Load_Circle();
 }
 
 /*
-	 ¹Ø±ÕPCB°Ğ»·º¯Êı
+	 å…³é—­PCBé¶ç¯å‡½æ•°
 */
 void WS_CloseAll_Frame(void)
 {
 	uint16_t i;
 	for (i = 0; i < (PIXEL_NUM_FRAME) * 24; i++)
-		send_Buf_frame[i] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		send_Buf_frame[i] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 	for (i = PIXEL_NUM_FRAME * 24; i < NUM_FRAME; i++)
-		send_Buf_frame[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_frame[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 	
 	WS_Load_Frame();
 }
 
 
 /*
-	 ¼ıÍ·Á÷Ë®µÆÉè¼Æº¯Êı
+	 ç®­å¤´æµæ°´ç¯è®¾è®¡å‡½æ•°
 */
 
 
@@ -158,42 +161,42 @@ void arrow_LED_cut_down_rectangle(int16_t add,int16_t send_Buf_move_rectangle)
 {
 		for ( Led_bite_cnt_rectangle = (0+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (3+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		for ( Led_bite_cnt_rectangle = (5+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (8+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		for ( Led_bite_cnt_rectangle = (8+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (10+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		for ( Led_bite_cnt_rectangle = (14+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (16+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		for ( Led_bite_cnt_rectangle = (16+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (17+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		for ( Led_bite_cnt_rectangle = (23+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (24+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		for ( Led_bite_cnt_rectangle = (27+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (29+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0) send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		for( Led_bite_cnt_rectangle = (34+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle < (38+add+send_Buf_move_rectangle) * 24; Led_bite_cnt_rectangle++)
 		{
-		  if(Led_bite_cnt_rectangle>=0)send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // Ğ´ÈëÂß¼­0µÄÕ¼¿Õ±È
+		  if(Led_bite_cnt_rectangle>=0)send_Buf_rectangle[Led_bite_cnt_rectangle] = WS0; // å†™å…¥é€»è¾‘0çš„å ç©ºæ¯”
 		}
 		
  
 	
 }
 /*
-	 µãÁÁ±ß¿òµÆÌõº¯Êı
+	 ç‚¹äº®è¾¹æ¡†ç¯æ¡å‡½æ•°
 */
 void WS_WriteAll_RGB_FRAME(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -208,7 +211,7 @@ void WS_WriteAll_RGB_FRAME(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 }
 
 /*
-	 µãÁÁPCBÉÏ±ß¿òº¯Êı
+	 ç‚¹äº®PCBä¸Šè¾¹æ¡†å‡½æ•°
 */
 void WS_WriteAll_RGB_FRAME_UP(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -223,7 +226,7 @@ void WS_WriteAll_RGB_FRAME_UP(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 }
 
 /*
-	 µãÁÁÖĞ¼äµÆ´ø
+	 ç‚¹äº®ä¸­é—´ç¯å¸¦
 */
 void WS_WriteAll_RGB_RECT(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -237,7 +240,7 @@ void WS_WriteAll_RGB_RECT(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_rectangle();
 }
 /*
-	 µãÁÁPCBÏÂ±ß¿òº¯Êı
+	 ç‚¹äº®PCBä¸‹è¾¹æ¡†å‡½æ•°
 */
 void WS_WriteAll_RGB_FRAME_DOWN(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -251,13 +254,13 @@ void WS_WriteAll_RGB_FRAME_DOWN(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_frame_down();
 }
 /*
-	 µãÁÁ¼ıÍ·µÆ´øº¯Êı
+	 ç‚¹äº®ç®­å¤´ç¯å¸¦å‡½æ•°
 */
 void WS_WriteAll_RGB_REC(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
 	uint16_t bit_24_low,bit_24_mid,bit_24_hig,i,j;
 	uint8_t dat[24];
-	// ½«RGBÊı¾İ½øĞĞ×ª»»
+	// å°†RGBæ•°æ®è¿›è¡Œè½¬æ¢
 	for (bit_24_low = 0; bit_24_low < 8; bit_24_low++)
 	{
 		dat[bit_24_low] = ((n_G & 0x80) ? WS1 : WS0);
@@ -283,69 +286,109 @@ void WS_WriteAll_RGB_REC(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 		}
 	}
 	for(i = PIXEL_NUM_REC * 24; i < NUM_REC; i++)
-		send_Buf_rectangle[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_rectangle[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 	WS_Load_rectangle();
 }
 /*
-	 µãÁÁPCB°Ğ»·Ê®×Öº¯Êı
+	 ç‚¹äº®PCBé¶ç¯åå­—å‡½æ•°
 */
 void WS_Write_Cross(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
-	for(int i = 0; i < 1; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-  for(int i = 12; i < 13; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 25; i < 26; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 38; i < 39; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 50; i < 51; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 61; i < 62; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 72; i < 73; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 84; i < 85; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 95; i < 96; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 105; i < 106; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 115; i < 116; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 125; i < 126; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 135; i < 136; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 144; i < 145; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 152; i < 153; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 161; i < 162; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 170; i < 171; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 178; i < 179; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 185; i < 186; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 230; i < 231; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 225; i < 226; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-  for(int i = 240; i < 241; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 192; i < 193; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
-	for(int i = 235; i < 236; i++)
-		WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// å³åå­—
+	WS281x_SetPixelRGB_CIR(0,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(48,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(90,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(134,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(174,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(210,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(230,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(250,n_R, n_G, n_B);
+
+	// ä¸Šåå­—
+	WS281x_SetPixelRGB_CIR(12,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(59,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(101,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(144,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(183,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(215,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(235,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(253,n_R, n_G, n_B);
+
+	// å·¦åå­—
+	WS281x_SetPixelRGB_CIR(24,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(70,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(113,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(155,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(192,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(220,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(240,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(256,n_R, n_G, n_B);
+
+	// ä¸‹åå­—
+	WS281x_SetPixelRGB_CIR(36,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(80,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(124,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(165,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(201,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(225,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(245,n_R, n_G, n_B);
+	WS281x_SetPixelRGB_CIR(259,n_R, n_G, n_B);
+
+	// for(int i = 0; i < 1; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+  	// for(int i = 12; i < 13; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 25; i < 26; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 38; i < 39; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 50; i < 51; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 61; i < 62; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 72; i < 73; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 84; i < 85; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 95; i < 96; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 105; i < 106; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 115; i < 116; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 125; i < 126; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 135; i < 136; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 144; i < 145; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 152; i < 153; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 161; i < 162; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 170; i < 171; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 178; i < 179; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 185; i < 186; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 230; i < 231; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 225; i < 226; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+  	// for(int i = 240; i < 241; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 192; i < 193; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
+	// for(int i = 235; i < 236; i++)
+	// 	WS281x_SetPixelRGB_CIR(i,n_R, n_G, n_B);
 	WS_Load_Circle();
 }
 
-/*********************°Ğ»·µãÁÁ²¿·Ö***************************/
+/*********************é¶ç¯ç‚¹äº®éƒ¨åˆ†***************************/
 
 /*
-	 È«²¿µãÁÁ
+	 å…¨éƒ¨ç‚¹äº®
 */
 void WS_Write_RGB_ALL_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -358,13 +401,13 @@ void WS_Write_RGB_ALL_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 Ê®»·
+	 åç¯
 */
 void WS_Write_RGB_TEN_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 268 ; n < 272; n++)
+	for(n = 271 ; n < 272; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -372,13 +415,13 @@ void WS_Write_RGB_TEN_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 ¾Å»·
+	 ä¹ç¯
 */
 void WS_Write_RGB_NINE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 260 ; n < 268; n++)
+	for(n = 262 ; n <= 270; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -386,13 +429,13 @@ void WS_Write_RGB_NINE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 °Ë»·
+	 å…«ç¯
 */
 void WS_Write_RGB_EIGHT_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 245 ; n < 260; n++)
+	for(n = 251 ; n < 261; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -400,13 +443,13 @@ void WS_Write_RGB_EIGHT_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 Æß»·
+	 ä¸ƒç¯
 */
 void WS_Write_RGB_SEVEN_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 225 ; n < 245; n++)
+	for(n = 231 ; n < 250; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -414,13 +457,13 @@ void WS_Write_RGB_SEVEN_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 Áù»·
+	 å…­ç¯
 */
 void WS_Write_RGB_SIX_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n =  200 ; n < 225; n++)
+	for(n =  211 ; n < 230; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -428,13 +471,13 @@ void WS_Write_RGB_SIX_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 Îå»·
+	 äº”ç¯
 */
 void WS_Write_RGB_FIVE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 170 ; n < 200; n++)
+	for(n = 175 ; n < 210; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -442,13 +485,13 @@ void WS_Write_RGB_FIVE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 ËÄ»·
+	 å››ç¯
 */
 void WS_Write_RGB_FOUR_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 135 ; n < 170; n++)
+	for(n = 135 ; n < 174; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -456,13 +499,13 @@ void WS_Write_RGB_FOUR_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 Èı»·
+	 ä¸‰ç¯
 */
 void WS_Write_RGB_THREE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 95 ; n < 135; n++)
+	for(n = 91 ; n < 134; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -470,13 +513,13 @@ void WS_Write_RGB_THREE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 ¶ş»·
+	 äºŒç¯
 */
 void WS_Write_RGB_TWO_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 50 ; n < 95; n++)
+	for(n = 49 ; n < 90; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -484,23 +527,23 @@ void WS_Write_RGB_TWO_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_Circle();
 }
 /*
-	 Ò»»·
+	 ä¸€ç¯
 */
 void WS_Write_RGB_ONE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n =  0 ; n < 50; n++)
+	for(n =  0 ; n < 48; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
 	
 	WS_Load_Circle();
 }
-/*********************°Ğ»·µãÁÁ²¿·Ö***************************/
+/*********************é¶ç¯ç‚¹äº®éƒ¨åˆ†***************************/
 /* 
-	<< ÒÆÎ»ÔËËã·û£º·µ»ØÂÌºìÀ¶Ë³ĞòµÄ32bitÊı¾İ,»òÔËËã·û
-	ÂÌºìÀ¶µÄÊı¾İË³ĞòÊÇWS2812Í¨ĞÅĞ­Òé¹æ¶¨µÄ£¬²»ÊÇÂÒÉèµÄ£¡
+	<< ç§»ä½è¿ç®—ç¬¦ï¼šè¿”å›ç»¿çº¢è“é¡ºåºçš„32bitæ•°æ®,æˆ–è¿ç®—ç¬¦
+	ç»¿çº¢è“çš„æ•°æ®é¡ºåºæ˜¯WS2812é€šä¿¡åè®®è§„å®šçš„ï¼Œä¸æ˜¯ä¹±è®¾çš„ï¼
 */
 uint32_t WS281x_Color(uint8_t red, uint8_t green, uint8_t blue)
 {
@@ -532,7 +575,7 @@ void WS281x_SetPixelColor_RECT(uint16_t n, uint8_t red, uint8_t green, uint8_t b
 }
 
 /*
-	 µãÁÁPCBÉÏ±ß¿òbaseº¯Êı
+	 ç‚¹äº®PCBä¸Šè¾¹æ¡†baseå‡½æ•°
 */
 void WS281x_SetPixelRGB_FRAME_UP(uint16_t n, uint8_t red, uint8_t green, uint8_t blue)
 {
@@ -547,7 +590,7 @@ void WS281x_SetPixelRGB_FRAME_UP(uint16_t n, uint8_t red, uint8_t green, uint8_t
 	}
 }
 /*
-	 µãÁÁµÆÌõ±ß¿òbaseº¯Êı
+	 ç‚¹äº®ç¯æ¡è¾¹æ¡†baseå‡½æ•°
 */
 void WS281x_SetPixelRGB_FRAME(uint16_t n, uint8_t red, uint8_t green, uint8_t blue)
 {
@@ -562,7 +605,7 @@ void WS281x_SetPixelRGB_FRAME(uint16_t n, uint8_t red, uint8_t green, uint8_t bl
 	}
 }
 /*
-	 µãÁÁPCB°Ğ»·baseº¯Êı
+	 ç‚¹äº®PCBé¶ç¯baseå‡½æ•°
 */
 void WS281x_SetPixelRGB_CIR(uint16_t n, uint8_t red, uint8_t green, uint8_t blue)
 {
@@ -578,7 +621,7 @@ void WS281x_SetPixelRGB_CIR(uint16_t n, uint8_t red, uint8_t green, uint8_t blue
 	
 }
 /*
-	 µãÁÁPCBÏÂ±ß¿òbaseº¯Êı
+	 ç‚¹äº®PCBä¸‹è¾¹æ¡†baseå‡½æ•°
 */
 void WS281x_SetPixelRGB_FRAME_DOWN(uint16_t n, uint8_t red, uint8_t green, uint8_t blue)
 {
@@ -595,7 +638,7 @@ void WS281x_SetPixelRGB_FRAME_DOWN(uint16_t n, uint8_t red, uint8_t green, uint8
 
 
 /*
-	 µãÁÁÀ¶É«¼ıÍ·º¯Êı
+	 ç‚¹äº®è“è‰²ç®­å¤´å‡½æ•°
 */
 void LED_Blue_rectangle_current(uint16_t wait_time ,uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -603,7 +646,7 @@ void LED_Blue_rectangle_current(uint16_t wait_time ,uint8_t n_R, uint8_t n_G, ui
 
   uint16_t bit_24_low,bit_24_mid,bit_24_hig,i,j;
 	uint8_t dat[24];
-	// ½«RGBÊı¾İ½øĞĞ×ª»»
+	// å°†RGBæ•°æ®è¿›è¡Œè½¬æ¢
 	for (bit_24_low = 0; bit_24_low < 8; bit_24_low++)
 	{
 		dat[bit_24_low] = ((n_G & 0x80) ? WS1 : WS0);
@@ -630,7 +673,7 @@ void LED_Blue_rectangle_current(uint16_t wait_time ,uint8_t n_R, uint8_t n_G, ui
 		}
 	}
 	for(i = PIXEL_NUM_REC * 24; i < NUM_REC; i++)
-		send_Buf_rectangle[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_rectangle[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 	
 	arrow_LED_cut_down_rectangle(0,send_Buf_move_rectangle);
 	arrow_LED_cut_down_rectangle(40,send_Buf_move_rectangle);
@@ -648,14 +691,14 @@ void LED_Blue_rectangle_current(uint16_t wait_time ,uint8_t n_R, uint8_t n_G, ui
 }
 
 /*
-	 µãÁÁºìÉ«¼ıÍ·º¯Êı
+	 ç‚¹äº®çº¢è‰²ç®­å¤´å‡½æ•°
 */
 void LED_Red_rectangle_current(uint16_t wait_time ,uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
 
  uint16_t bit_24_low,bit_24_mid,bit_24_hig,i,j;
 	uint8_t dat[24];
-	// ½«RGBÊı¾İ½øĞĞ×ª»»
+	// å°†RGBæ•°æ®è¿›è¡Œè½¬æ¢
 	for (bit_24_low = 0; bit_24_low < 8; bit_24_low++)
 	{
 		dat[bit_24_low] = ((n_G & 0x80) ? WS1 : WS0);
@@ -682,7 +725,7 @@ void LED_Red_rectangle_current(uint16_t wait_time ,uint8_t n_R, uint8_t n_G, uin
 		}
 	}
 	for(i = PIXEL_NUM_REC * 24; i < NUM_REC; i++)
-		send_Buf_rectangle[i] = 0; // Õ¼¿Õ±È±ÈÎª0£¬È«ÎªµÍµçÆ½
+		send_Buf_rectangle[i] = 0; // å ç©ºæ¯”æ¯”ä¸º0ï¼Œå…¨ä¸ºä½ç”µå¹³
 	
 
 	arrow_LED_cut_down_rectangle(0,send_Buf_move_rectangle);
@@ -711,7 +754,7 @@ void rainbowCycle(uint8_t wait)
 	static uint8_t loop = 0;
 	if (loop == 0)
 		next_time = timestamp;
-	loop = 1; //Ê×´Îµ÷ÓÃ³õÊ¼»¯
+	loop = 1; //é¦–æ¬¡è°ƒç”¨åˆå§‹åŒ–
 
 	if ((timestamp > next_time)) // && (timestamp - next_time < wait*5))
 	{
@@ -791,11 +834,11 @@ uint32_t Wheel(uint8_t WheelPos)
 
 
 /*
- Õû»îÏµÁĞÖ®²ÊÉ«Á÷Ë®´ó×ªÅÌ
+ æ•´æ´»ç³»åˆ—ä¹‹å½©è‰²æµæ°´å¤§è½¬ç›˜
 */
 
 /*
-	 µãÁÁ±ß¿òµÆÌõº¯Êı(ÑÓÊ±)
+	 ç‚¹äº®è¾¹æ¡†ç¯æ¡å‡½æ•°(å»¶æ—¶)
 */
 void WS_WriteAll_RGB_FRAME_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -811,7 +854,7 @@ void WS_WriteAll_RGB_FRAME_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 }
 
 /*
-	 µãÁÁPCBÉÏ±ß¿òº¯Êı
+	 ç‚¹äº®PCBä¸Šè¾¹æ¡†å‡½æ•°
 */
 void WS_WriteAll_RGB_FRAME_UP_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -827,7 +870,7 @@ void WS_WriteAll_RGB_FRAME_UP_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 }
 
 /*
-	 µãÁÁÖĞ¼äµÆ´ø
+	 ç‚¹äº®ä¸­é—´ç¯å¸¦
 */
 void WS_WriteAll_RGB_RECT_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -842,7 +885,7 @@ void WS_WriteAll_RGB_RECT_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 	WS_Load_rectangle();
 }
 /*
-	 µãÁÁPCBÏÂ±ß¿òº¯Êı
+	 ç‚¹äº®PCBä¸‹è¾¹æ¡†å‡½æ•°
 */
 void WS_WriteAll_RGB_FRAME_DOWN_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
@@ -858,7 +901,7 @@ void WS_WriteAll_RGB_FRAME_DOWN_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 }
 
 /*
-	 È«²¿µãÁÁ
+	 å…¨éƒ¨ç‚¹äº®
 */
 void WS_Write_RGB_ALL_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {

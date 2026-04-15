@@ -127,49 +127,49 @@ void Board_RX(uint32_t ID, uint8_t *data)
 	switch(ID)
 	{
 		
-//case CAN_BOARD_ID_1_F:
-//{
-//	get_Centrol_measure(&Board_Order_info[0]);
-//	Board_Can_info.B1_offline_cnt= 0;
-//	
-//	break;
-//}	
-//
-//  case CAN_BOARD_ID_2_F:
-//	{
-//		get_Centrol_measure(&Board_Order_info[1]);
-//		Board_Can_info.B2_offline_cnt= 0;
-//		
-//		break;
-//	}	
-//	
-//	case CAN_BOARD_ID_3_F:
-//	{
-//		get_Centrol_measure(&Board_Order_info[2]);
-//		Board_Can_info.B3_offline_cnt= 0;
-//		
-//		break;
-//	}	
-//	
-//	case CAN_BOARD_ID_4_F:
-//	{
-//		get_Centrol_measure(&Board_Order_info[3]);
-//		Board_Can_info.B4_offline_cnt= 0;
-//		
-//		break;
-//	}	
+// case CAN_BOARD_ID_1_F:
+// {
+// 	get_Centrol_measure(&Board_Order_info[0]);
+// 	Board_Can_info.B1_offline_cnt= 0;
 	
-	case CAN_BOARD_ID_5_F:
+// 	break;
+// }	
+
+//  case CAN_BOARD_ID_2_F:
+// 	{
+// 		get_Centrol_measure(&Board_Order_info[1]);
+// 		Board_Can_info.B2_offline_cnt= 0;
+		
+// 		break;
+// 	}	
+	
+	// case CAN_BOARD_ID_3_F:
+	// {
+	// 	get_Centrol_measure(&Board_Order_info[2]);
+	// 	Board_Can_info.B3_offline_cnt= 0;
+		
+	// 	break;
+	// }	
+	
+	case CAN_BOARD_ID_4_F:
 	{
-		get_Centrol_measure(&Board_Order_info[4]);
-		Board_Can_info.B5_offline_cnt= 0;			
+		get_Centrol_measure(&Board_Order_info[3]);
+		Board_Can_info.B4_offline_cnt= 0;
+		
 		break;
 	}	
+	
+	// case CAN_BOARD_ID_5_F:
+	// {
+	// 	get_Centrol_measure(&Board_Order_info[4]);
+	// 	Board_Can_info.B5_offline_cnt= 0;			
+	// 	break;
+	// }	
 		
-		default:
-		{
-				break;
-		}
+	// 	default:
+	// 	{
+	// 			break;
+	// 	}
 		
 	}
 }

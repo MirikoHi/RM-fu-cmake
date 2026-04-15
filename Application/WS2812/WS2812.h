@@ -48,8 +48,8 @@
 #define PIXEL_ONE_RING_NUM  50
 #define ONE_RING_NUM (24*PIXEL_ONE_RING_NUM + 224)
 
-#define WS1 30  //Ëæ×Å×Ô¶¯ÖØ×°ÔØÖµ¶ø±ä»¯ 2:1
-#define WS0 15
+#define WS1 69  //éšç€è‡ªåŠ¨é‡è£…è½½å€¼è€Œå˜åŒ– 2:1
+#define WS0 27
 
 void WS_Load_rectangle(void);
 void WS_Load_frame_up(void);
@@ -89,7 +89,7 @@ void LED_Police_rectangle_current(uint8_t wait_time);
 void LED_Blue_frame_up_current(uint8_t wait_time);
 void LED_Red_frame_up_current(uint8_t wait_time);
 
-/*********************°Ğ»·µãÁÁ²¿·Ö***************************/
+/*********************é¶ç¯ç‚¹äº®éƒ¨åˆ†***************************/
 void WS_Write_RGB_TEN_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B );
 void WS_Write_RGB_NINE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B );
 void WS_Write_RGB_EIGHT_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B );
@@ -100,7 +100,7 @@ void WS_Write_RGB_FOUR_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B );
 void WS_Write_RGB_THREE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B );
 void WS_Write_RGB_TWO_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B );
 void WS_Write_RGB_ONE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B );
-/*********************°Ğ»·µãÁÁ²¿·Ö***************************/
+/*********************é¶ç¯ç‚¹äº®éƒ¨åˆ†***************************/
 
 void WS_WriteAll_RGB_FRAME_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B );
 void WS_WriteAll_RGB_FRAME_UP_Delay(uint8_t n_R, uint8_t n_G, uint8_t n_B );

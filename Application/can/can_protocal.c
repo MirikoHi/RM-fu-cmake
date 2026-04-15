@@ -38,14 +38,14 @@ void Board_Info_Tx()
 //	 memcpy(can_Dafu_data, &Big_Fu_info[1], 8);
 //	 Board_Tx(CAN_BOARD_ID_2,can_Dafu_data,1,0x08);	
 //	
-//	 memcpy(can_Dafu_data, &Big_Fu_info[2], 8);
-//	 Board_Tx(CAN_BOARD_ID_3,can_Dafu_data,1,0x08);
+	//  memcpy(can_Dafu_data, &Big_Fu_info[2], 8);
+	//  Board_Tx(CAN_BOARD_ID_3,can_Dafu_data,1,0x08);
 //	
-// memcpy(can_Dafu_data, &Big_Fu_info[3], 8);
-// Board_Tx(CAN_BOARD_ID_4,can_Dafu_data,1,0x08);	
+	memcpy(can_Dafu_data, &Big_Fu_info[3], 8);
+	Board_Tx(CAN_BOARD_ID_4,can_Dafu_data,1,0x08);	
 	
-	 memcpy(can_Dafu_data, &Big_Fu_info[4], 8);
-	 Board_Tx(CAN_BOARD_ID_5,can_Dafu_data,1,0x08);
+	//  memcpy(can_Dafu_data, &Big_Fu_info[4], 8);
+	//  Board_Tx(CAN_BOARD_ID_5,can_Dafu_data,1,0x08);
 	
 	
 }
