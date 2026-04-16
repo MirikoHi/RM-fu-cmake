@@ -324,6 +324,43 @@ int main(void)
 #endif
 
     /**************************************按键检测***************************************/
+#ifdef DEBUG_xzb
+    if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_6) == GPIO_PIN_RESET){
+
+      reset_cntt++;
+
+      if(reset_cntt > 120){
+        WS_WriteAll_RGB_FRAME_DOWN(0, 0, 0);
+        WS_WriteAll_RGB_FRAME(0, 0, 0);
+        WS_WriteAll_RGB_REC(0, 0, 0);
+        WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
+        WS_CloseAll_Circle();
+        HAL_Delay(1000);
+        // 关闭所有中断
+        __set_FAULTMASK(1); 
+        // 复位
+        NVIC_SystemReset(); 
+      }
+    }
+    else{
+      reset_cntt = 0;
+    }
+
+    // 自动复位
+    if(Big_Fu_info[BOARD_NUMBER].Hit_LED_state == 1){
+      HAL_Delay(800);
+      WS_WriteAll_RGB_FRAME_DOWN(0, 0, 0);
+      WS_WriteAll_RGB_FRAME(0, 0, 0);
+      WS_WriteAll_RGB_REC(0, 0, 0);
+      WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
+      WS_CloseAll_Circle();
+      HAL_Delay(500);
+      // 关闭所有中断
+      __set_FAULTMASK(1); 
+      // 复位
+      NVIC_SystemReset(); 
+    }
+#endif
 
     Board_Info_Tx();
     /*读取微动开关状态*/
@@ -338,39 +375,7 @@ int main(void)
     Rings_Key.nine_ring = HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_6);
     Rings_Key.ten_ring = 1; // HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_7);
 
-#ifdef DEBUG_xzb
-    if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_6) == GPIO_PIN_RESET){
-      reset_cntt++;
-    }
-    else{
-      reset_cntt = 0;
-    }
-    if(reset_cntt > 120){
-      WS_WriteAll_RGB_FRAME_DOWN(0, 0, 0);
-      WS_WriteAll_RGB_FRAME(0, 0, 0);
-      WS_WriteAll_RGB_REC(0, 0, 0);
-      WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
-      WS_CloseAll_Circle();
-      HAL_Delay(1000);
-      // 关闭所有中断
-      __set_FAULTMASK(1); 
-      // 复位
-      NVIC_SystemReset(); 
-    }
-    if(Big_Fu_info[BOARD_NUMBER].Hit_LED_state == 1){
-      HAL_Delay(2000);
-      WS_WriteAll_RGB_FRAME_DOWN(0, 0, 0);
-      WS_WriteAll_RGB_FRAME(0, 0, 0);
-      WS_WriteAll_RGB_REC(0, 0, 0);
-      WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
-      WS_CloseAll_Circle();
-      HAL_Delay(1000);
-      // 关闭所有中断
-      __set_FAULTMASK(1); 
-      // 复位
-      NVIC_SystemReset(); 
-    }
-#endif
+
 
     // 按键按下时记录为击中，同时清空圆环
 
