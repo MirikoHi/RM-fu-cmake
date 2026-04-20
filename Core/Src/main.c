@@ -342,23 +342,28 @@ int main(void)
         NVIC_SystemReset(); 
       }
     }
-    else{
+    else if(!(Big_Fu_info[BOARD_NUMBER].Hit_LED_state == 1)){
       reset_cntt = 0;
     }
 
     // 自动复位
     if(Big_Fu_info[BOARD_NUMBER].Hit_LED_state == 1){
-      HAL_Delay(800);
-      WS_WriteAll_RGB_FRAME_DOWN(0, 0, 0);
-      WS_WriteAll_RGB_FRAME(0, 0, 0);
-      WS_WriteAll_RGB_REC(0, 0, 0);
-      WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
-      WS_CloseAll_Circle();
-      HAL_Delay(500);
-      // 关闭所有中断
-      __set_FAULTMASK(1); 
-      // 复位
-      NVIC_SystemReset(); 
+      if(reset_cntt > 10){
+        HAL_Delay(800);
+        WS_WriteAll_RGB_FRAME_DOWN(0, 0, 0);
+        WS_WriteAll_RGB_FRAME(0, 0, 0);
+        WS_WriteAll_RGB_REC(0, 0, 0);
+        WS_WriteAll_RGB_FRAME_UP(0, 0, 0);
+        WS_CloseAll_Circle();
+        HAL_Delay(500);
+        // 关闭所有中断
+        __set_FAULTMASK(1); 
+        // 复位
+        NVIC_SystemReset();
+      }
+      else{
+        reset_cntt++;
+      }
     }
 #endif
 
