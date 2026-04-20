@@ -28,6 +28,7 @@
 #include "WS2812.h"
 #include "can_protocal.h"
 #include "Flag_State.h"
+#include "start.h"
 
 /* USER CODE END Includes */
 
@@ -116,6 +117,7 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
+  startup();
   /* USER CODE END 2 */
 
   /* Infinite loop */

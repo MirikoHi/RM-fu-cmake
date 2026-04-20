@@ -12,6 +12,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+
 
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -19,7 +23,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Set the project name
-set(CMAKE_PROJECT_NAME 2023_Energy_Mechine_Code)
+set(CMAKE_PROJECT_NAME 2026_Energy_Mechine_Code)
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -50,6 +54,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Application/can/CAN_send.c
     Application/Flag_State/Flag_State.c
     Application/WS2812/WS2812.c
+    module/start.cpp
+    module/Fu.cpp
+    module/_can.cpp
 )
 
 # Add include paths
@@ -58,6 +65,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Application/can
     Application/Flag_State
     Application/WS2812
+    module/
 )
 
 # Add project symbols (macros)
