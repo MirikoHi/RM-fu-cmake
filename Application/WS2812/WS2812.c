@@ -435,7 +435,7 @@ void WS_Write_RGB_EIGHT_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 251 ; n < 261; n++)
+	for(n = 251 ; n < 262; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -449,7 +449,7 @@ void WS_Write_RGB_SEVEN_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 231 ; n < 250; n++)
+	for(n = 231 ; n < 251; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -463,7 +463,7 @@ void WS_Write_RGB_SIX_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n =  211 ; n < 230; n++)
+	for(n =  211 ; n < 231; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -477,7 +477,7 @@ void WS_Write_RGB_FIVE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 175 ; n < 210; n++)
+	for(n = 175 ; n < 211; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -491,7 +491,7 @@ void WS_Write_RGB_FOUR_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 135 ; n < 174; n++)
+	for(n = 135 ; n < 175; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -505,7 +505,7 @@ void WS_Write_RGB_THREE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 91 ; n < 134; n++)
+	for(n = 91 ; n < 135; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -519,7 +519,7 @@ void WS_Write_RGB_TWO_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n = 49 ; n < 90; n++)
+	for(n = 49 ; n < 91; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
@@ -533,7 +533,7 @@ void WS_Write_RGB_ONE_RING(uint8_t n_R, uint8_t n_G, uint8_t n_B )
 {
   uint16_t n = 0;
 	
-	for(n =  0 ; n < 48; n++)
+	for(n =  0 ; n < 49; n++)
 	{
 		 WS281x_SetPixelRGB_CIR(n,n_R, n_G, n_B);
 	}
