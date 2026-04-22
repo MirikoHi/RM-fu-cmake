@@ -1,7 +1,7 @@
 #include "_can.h"
 #include <algorithm>
 
-void CanBox::CanInit(uint32_t stdId){
+CanBox::CanBox(uint32_t stdId){
     CAN_FilterTypeDef sFilterConfig;
 
     // 接受全部 ID 的过滤器（掩码/ID 全 0）
@@ -17,6 +17,35 @@ void CanBox::CanInit(uint32_t stdId){
     sFilterConfig.SlaveStartFilterBank = 0;
     
     this->txHeader.StdId = stdId;
+    this->stdId = stdId;
+    this->txHeader.ExtId = 0;
+    this->txHeader.IDE = CAN_ID_STD;
+    this->txHeader.RTR = CAN_RTR_DATA;
+
+    HAL_CAN_ConfigFilter(this->Can, &sFilterConfig);
+
+    // 激活接收中断并启动 CAN
+    if(HAL_CAN_ActivateNotification(this->Can, CAN_IT_RX_FIFO0_MSG_PENDING) == HAL_OK){
+        HAL_CAN_Start(this->Can);
+    }
+}
+
+CanBox::CanBox(uint32_t stdId, uint32_t txStdId){
+    CAN_FilterTypeDef sFilterConfig;
+
+    // 接受全部 ID 的过滤器（掩码/ID 全 0）
+    sFilterConfig.FilterIdHigh = 0;
+    sFilterConfig.FilterIdLow = 0;
+    sFilterConfig.FilterMaskIdHigh = 0;
+    sFilterConfig.FilterMaskIdLow = 0;
+    sFilterConfig.FilterFIFOAssignment = CAN_FilterFIFO0;
+    sFilterConfig.FilterBank = 0;
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+    sFilterConfig.FilterActivation = ENABLE;
+    sFilterConfig.SlaveStartFilterBank = 0;
+    
+    this->txHeader.StdId = txStdId;
     this->stdId = stdId;
     this->txHeader.ExtId = 0;
     this->txHeader.IDE = CAN_ID_STD;
