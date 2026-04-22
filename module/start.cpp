@@ -1,6 +1,6 @@
 #include "start.h"
 
-#include "can.h"
+#include "_can.h"
 #include "dma.h"
 #include "tim.h"
 #include "gpio.h"
