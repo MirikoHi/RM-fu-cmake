@@ -97,13 +97,13 @@ static void CAN_Rx_Callback(CAN_HandleTypeDef *hcan)
   * @param[in]      hcan:CAN句柄指针
   * @retval         none
   */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{	
-	if(hcan->Instance == CAN1)
-	{		
-		 CAN_Rx_Callback(hcan);
-	}	
-}		
+// void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+// {	
+// 	if(hcan->Instance == CAN1)
+// 	{		
+// 		 CAN_Rx_Callback(hcan);
+// 	}	
+// }		
 
 void get_Centrol_measure(Board_Order_info_t *ptr)                                    
 {                                                                   
