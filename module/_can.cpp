@@ -1,5 +1,5 @@
 #include "_can.h"
-#include <algorithm>
+#include <algorithm> // std::copy
 
 CanBox::CanBox(uint32_t stdId){
     CAN_FilterTypeDef sFilterConfig;

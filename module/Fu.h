@@ -129,7 +129,7 @@ public:
     void lightenFrame(uint16_t red, uint8_t green, uint8_t blue);
 
     /**
-     * @brief 查询命中环号
+     * @brief 检测并返回命中环号
      * @return 被击中的环号（1..9），无命中时返回 0
      */
     uint8_t gotHitRing();
