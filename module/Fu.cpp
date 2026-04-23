@@ -1,49 +1,64 @@
 #include "Fu.h"
+#include "tim.h"
 // #include <algorithm>
+
+extern DMA_HandleTypeDef hdma_tim1_ch1;
+extern DMA_HandleTypeDef hdma_tim1_ch2;
+extern DMA_HandleTypeDef hdma_tim2_ch1;
+extern DMA_HandleTypeDef hdma_tim2_ch2_ch4;
+extern DMA_HandleTypeDef hdma_tim3_ch1_trig;
+extern DMA_HandleTypeDef hdma_tim4_ch1;
 
 uint8_t WS::Buf_frame_up[NumUp] = {0};
 uint8_t WS::Buf_frame_down[NumDown] = {0};
 uint8_t WS::Buf_Circle[NumCircle] = {0};
 
-uint32_t WS::WS281x_Color(uint8_t red, uint8_t green, uint8_t blue){
-    return green << 16 | red << 8 | blue;
+uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
+    return ((uint32_t)green) << 16 | ((uint32_t)red) << 8 | ((uint32_t)blue);
 }
 
 void WS::WS281x_SetPixelRGB(uint8_t pos, uint16_t n, uint8_t red, uint8_t green, uint8_t blue){
     switch(pos){
-        case circle:
+        case circle:{
             for (uint8_t i = 0; i < 24; ++i)
             {
                 Buf_Circle[24 * n + i] = (((WS281x_Color(red, green, blue) << i) & 0X800000) ? WS1 : WS0);
             }
             break;
-        case up:
+		}
+        case up:{
             for (uint8_t i = 0; i < 24; ++i)
             {
                 Buf_frame_up[24 * n + i] = (((WS281x_Color(red, green, blue) << i) & 0X800000) ? WS1 : WS0);
             }
             break;
-        case down:
+		}
+        case down:{
             for (uint8_t i = 0; i < 24; ++i)
             {
                 Buf_frame_down[24 * n + i] = (((WS281x_Color(red, green, blue) << i) & 0X800000) ? WS1 : WS0);
             }
             break;
-        default:
+		}
+        default:{
             break;
+		}
     }
 }
 
 void WS::WS_Load_Circle(){
-    HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, (uint32_t *)Buf_Circle, NumCircle);
+	// __HAL_DMA_DISABLE_IT(&hdma_tim2_ch1, DMA_IT_HT);
+    HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, (uint32_t *)WS::Buf_Circle, NumCircle);
 }
 
 void WS::WS_Load_Frame_up(){
-    HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, (uint32_t *)Buf_frame_up, NumUp);
+	// __HAL_DMA_DISABLE_IT(&hdma_tim3_ch1_trig, DMA_IT_HT);
+    HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, (uint32_t *)WS::Buf_frame_up, NumUp);
 }
 
 void WS::WS_Load_Frame_down(){
-    HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, (uint32_t *)Buf_frame_down, NumDown);
+	// __HAL_DMA_DISABLE_IT(&hdma_tim2_ch2_ch4, DMA_IT_HT);
+    HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, (uint32_t *)WS::Buf_frame_down, NumDown);
 }
 
 void Fu_t::lightenCross(uint8_t red, uint8_t green, uint8_t blue){
@@ -235,7 +250,7 @@ void Fu_t::closeCircle(){
 	for (uint16_t i = 0; i < 270 * 24; i++)
 		WS::Buf_Circle[i] = WS0; // 写入逻辑0的占空比
 	for (uint16_t i = 270 * 24; i < NumCircle; i++)
-		WS::Buf_Circle[i] = 0; // 占空比比为0，全为低电平
+		WS::Buf_Circle[i] = 0; // 占空比为0，全为低电平
 	
 	WS::WS_Load_Circle();
 }
@@ -244,14 +259,14 @@ void Fu_t::closeFrame(){
 	for (uint16_t i = 0; i < 88 * 24; i++)
 		WS::Buf_frame_up[i] = WS0; // 写入逻辑0的占空比
 	for (uint16_t i = 88 * 24; i < NumUp; i++)
-		WS::Buf_frame_up[i] = 0; // 占空比比为0，全为低电平
+		WS::Buf_frame_up[i] = 0; // 占空比为0，全为低电平
 	
 	WS::WS_Load_Frame_up();
 
 	for (uint16_t i = 0; i < 92 * 24; i++)
 		WS::Buf_frame_down[i] = WS0; // 写入逻辑0的占空比
 	for (uint16_t i = 92 * 24; i < NumDown; i++)
-		WS::Buf_frame_down[i] = 0; // 占空比比为0，全为低电平
+		WS::Buf_frame_down[i] = 0; // 占空比为0，全为低电平
 	
 	WS::WS_Load_Frame_down();
 }

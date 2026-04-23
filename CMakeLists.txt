@@ -62,9 +62,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    Application/can
-    Application/Flag_State
-    Application/WS2812
+    # Application/can
+    # Application/Flag_State
+    # Application/WS2812
     module/
 )
 

@@ -2,7 +2,7 @@
 #define __CANH__
 
 #ifdef __cplusplus
-// extern "C"{
+extern "C" {
 #endif
 
 #include "start.h"
@@ -107,7 +107,7 @@ extern CanBox canbox;
 
 
 #ifdef __cplusplus
-// }
+}
 #endif
 
 #endif

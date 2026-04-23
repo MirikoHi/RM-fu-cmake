@@ -1,21 +1,25 @@
 #ifndef __FU_H__
 #define __FU_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "start.h"
 
 
 /**
  * @brief HAL 定时器句柄（在 C 区域声明以便 HAL 回调可见）
  */
-extern "C" {
-    extern TIM_HandleTypeDef htim1;
-    extern TIM_HandleTypeDef htim2;
-    extern TIM_HandleTypeDef htim3;
-    extern TIM_HandleTypeDef htim4;
-}
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
 
 #define WS1 69 // WS逻辑高
 #define WS0 27 // WS逻辑低
+
 #define NumCircle 24*270 + 224 // 靶环bit数
 #define NumUp 24*88 + 224 // 上边框bit数
 #define NumDown 24*92 + 224 // 下边框bit数
@@ -68,7 +72,7 @@ public:
      * @param blue 蓝分量
      * @return 32-bit GRB 数据
      */
-    static uint32_t WS281x_Color(uint8_t red, uint8_t green, uint8_t blue);
+    static uint32_t WS281x_Color(uint32_t red, uint32_t green, uint32_t blue);
 
     /**
      * @brief 写入指定位置的像素数据到静态缓冲
@@ -115,6 +119,7 @@ public:
 
     /** @brief 存储击打的环数 */
     uint8_t hitRing;
+
 public:
     Fu_t() = default;
 
@@ -157,5 +162,8 @@ public:
 
 /** 全局 Fu 实例 */
 extern Fu_t Fu;
+#ifdef __cplusplus
+}
+#endif
 
 #endif
