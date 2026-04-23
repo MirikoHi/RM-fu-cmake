@@ -48,10 +48,21 @@ void startup(void){
     while(1){
 
 #ifdef __DE_BUG
-        Fu.hitEnable == true;
+        Fu.hitEnable = true;
+        if(Fu.hitState == true){
+            HAL_Delay(800);
+            Fu.closeFrame();
+            Fu.closeCircle();
+            // 关闭所有中断
+            __set_FAULTMASK(1); 
+            // 复位
+            NVIC_SystemReset();
+        }
 #endif /* __DE_BUG */
 
+        // TxData处理
         canbox.Send();
+
         Fu.hitRing = Fu.gotHitRing();
 
         // RxData处理
