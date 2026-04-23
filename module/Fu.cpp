@@ -61,6 +61,12 @@ void WS::WS_Load_Frame_down(){
     HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, (uint32_t *)WS::Buf_frame_down, NumDown);
 }
 
+/* DMA接收中断回调函数 */
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim) { }
+
+/* DMA接收过半中断回调函数 */
+void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim) { }
+
 void Fu_t::lightenCross(uint8_t red, uint8_t green, uint8_t blue){
     // 右十字
 	WS::WS281x_SetPixelRGB(circle, 0,red, green, blue);
@@ -101,6 +107,10 @@ void Fu_t::lightenCross(uint8_t red, uint8_t green, uint8_t blue){
 	WS::WS281x_SetPixelRGB(circle, 225,red, green, blue);
 	WS::WS281x_SetPixelRGB(circle, 245,red, green, blue);
 	WS::WS281x_SetPixelRGB(circle, 259,red, green, blue);
+
+	lightenRing(2, red, green, blue);
+	lightenRing(6, red, green, blue);
+	lightenRing(9, red, green, blue);
 
     WS::WS_Load_Circle();
 }
@@ -189,7 +199,7 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 			break;
 	}
 
-	WS::WS_Load_Circle();
+	// WS::WS_Load_Circle();
 }
 
 uint8_t Fu_t::gotHitRing(){

@@ -79,6 +79,7 @@ void startup(void){
             Fu.closeCircle();
             Fu.closeFrame();
             Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+            WS::WS_Load_Circle();
             Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
         }
         if(Fu.hitEnable == false){
