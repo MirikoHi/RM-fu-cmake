@@ -17,7 +17,7 @@ extern "C" {
 #define WS1 69 // WS逻辑高
 #define WS0 27 // WS逻辑低
 #define NumCircle 24*270 + 224 // 靶环bit数
-#define NumUp 24*88 + 2244 // 上边框bit数
+#define NumUp 24*88 + 224 // 上边框bit数
 #define NumDown 24*92 + 224 // 下边框bit数
 
 enum Color{
