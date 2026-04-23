@@ -28,12 +28,12 @@ public:
     /**
      * @brief 接收缓冲（最多 8 字节）
      */
-    uint8_t RxData[8];
+    uint8_t RxData[8] = {0};
 
     /**
      * @brief 发送缓冲（最多 8 字节）
      */
-    uint8_t TxData[8];
+    uint8_t TxData[8] = {0};
 
     /**
      * @brief 作为成员复用的发送头，避免频繁在栈上构造
@@ -78,8 +78,25 @@ public:
     bool Send(uint32_t stdId, uint8_t *txdata ,uint8_t len = 0x08);
 
     /**
+     * @brief 发送指定数据缓冲
+     * @param txdata 指向要发送的数据（长度由 len 指定）
+     * @param len 数据长度（最大 8）
+     * @return true 发送成功加入邮箱，false 失败
+     */
+    bool Send(uint8_t *txdata ,uint8_t len = 0x08);
+
+    /**
+     * @brief 发送指定数据缓冲
+     * @param len 数据长度（最大 8）
+     * @return true 发送成功加入邮箱，false 失败
+     */
+    bool Send(uint8_t len = 0x08);
+
+    /**
      * @brief 由 HAL 回调调用读取 FIFO 消息到内部缓冲
      * @note 该函数只负责从 HAL 获取消息并保存到成员变量
+     * 
+     * 这个函数不需要调用，可随时读取RxData
      */
     void Receive();
 };

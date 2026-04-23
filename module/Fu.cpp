@@ -1,4 +1,5 @@
 #include "Fu.h"
+// #include <algorithm>
 
 uint8_t WS::Buf_frame_up[NumUp] = {0};
 uint8_t WS::Buf_frame_down[NumDown] = {0};
@@ -228,4 +229,29 @@ uint8_t Fu_t::gotHitRing(){
     }
 
     return 0;
+}
+
+void Fu_t::closeCircle(){
+	for (uint16_t i = 0; i < 270 * 24; i++)
+		WS::Buf_Circle[i] = WS0; // 写入逻辑0的占空比
+	for (uint16_t i = 270 * 24; i < NumCircle; i++)
+		WS::Buf_Circle[i] = 0; // 占空比比为0，全为低电平
+	
+	WS::WS_Load_Circle();
+}
+
+void Fu_t::closeFrame(){
+	for (uint16_t i = 0; i < 88 * 24; i++)
+		WS::Buf_frame_up[i] = WS0; // 写入逻辑0的占空比
+	for (uint16_t i = 88 * 24; i < NumUp; i++)
+		WS::Buf_frame_up[i] = 0; // 占空比比为0，全为低电平
+	
+	WS::WS_Load_Frame_up();
+
+	for (uint16_t i = 0; i < 92 * 24; i++)
+		WS::Buf_frame_down[i] = WS0; // 写入逻辑0的占空比
+	for (uint16_t i = 92 * 24; i < NumDown; i++)
+		WS::Buf_frame_down[i] = 0; // 占空比比为0，全为低电平
+	
+	WS::WS_Load_Frame_down();
 }

@@ -29,9 +29,9 @@ enum Color{
  * @brief 大符区域枚举
  */
 enum {
-    circle, /**< 靶环 */
-    up,     /**< 上边框 */
-    down    /**< 下边框 */
+    circle,
+    up,
+    down
 };
 
 /**
@@ -110,8 +110,18 @@ public:
     /** @brief 大符击中/未击中状态，外部事件或传感器设置 */
     bool hitState = 0;
 
+    /** @brief 九环按键 */
     Rings rings = {1,1,1,1,1,1,1,1,1};
+
+    /** @brief 存储击打的环数 */
+    uint8_t hitRing;
 public:
+    Fu_t() = default;
+
+    Fu_t(Color color){
+        this->color = color;
+    }
+
     /**
      * @brief 点亮十字靶环，将对应像素写入并启动 DMA
      */
@@ -127,6 +137,16 @@ public:
      * @brief 点亮靶框
      */
     void lightenFrame(uint16_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief 熄灭所有靶环
+     */
+    void closeCircle();
+
+    /**
+     * @brief 熄灭所有靶框
+     */
+    void closeFrame();
 
     /**
      * @brief 检测并返回命中环号

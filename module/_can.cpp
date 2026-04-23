@@ -65,6 +65,7 @@ bool CanBox::Send(uint32_t stdId, uint8_t len){
     }
 
     this->txHeader.DLC = len;
+    this->txHeader.StdId = stdId;
 
 #if defined(HAL_CAN_MODULE_PRIV_DEF) || defined(CAN_TXMAILBOX_0)
     this->txHeader.TransmitGlobalTime = DISABLE;
@@ -82,12 +83,47 @@ bool CanBox::Send(uint32_t stdId, uint8_t *txdata ,uint8_t len){
     }
 
     this->txHeader.DLC = len;
+    this->txHeader.StdId = stdId;
 
 #if defined(HAL_CAN_MODULE_PRIV_DEF) || defined(CAN_TXMAILBOX_0)
     this->txHeader.TransmitGlobalTime = DISABLE;
 #endif
 
     if(HAL_CAN_AddTxMessage(this->Can, &this->txHeader, (uint8_t*)txdata, &this->txMailbox) == HAL_OK){
+        return true;
+    }
+    return false;
+}
+
+bool CanBox::Send(uint8_t *txdata, uint8_t len){
+    if(len > 8){
+        return false;
+    }
+
+    this->txHeader.DLC = len;
+
+#if defined(HAL_CAN_MODULE_PRIV_DEF) || defined(CAN_TXMAILBOX_0)
+    this->txHeader.TransmitGlobalTime = DISABLE;
+#endif
+
+    if(HAL_CAN_AddTxMessage(this->Can, &this->txHeader, (uint8_t*)txdata, &this->txMailbox) == HAL_OK){
+        return true;
+    }
+    return false;
+}
+
+bool CanBox::Send(uint8_t len){
+    if(len > 8){
+        return false;
+    }
+
+    this->txHeader.DLC = len;
+
+#if defined(HAL_CAN_MODULE_PRIV_DEF) || defined(CAN_TXMAILBOX_0)
+    this->txHeader.TransmitGlobalTime = DISABLE;
+#endif
+
+    if(HAL_CAN_AddTxMessage(this->Can, &this->txHeader, (uint8_t*)this->TxData, &this->txMailbox) == HAL_OK){
         return true;
     }
     return false;

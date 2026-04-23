@@ -36,9 +36,46 @@ Fu_t Fu;
 #include "tim.h"
 #include "gpio.h"
 
+#define BLUE 1
+#define RED 0
+
+#define __DE_BUG
+
 
 void startup(void){
+    Fu.closeCircle();
+    Fu.closeFrame();
     while(1){
 
+#ifdef __DE_BUG
+        Fu.hitEnable == true;
+#endif /* __DE_BUG */
+
+        canbox.Send();
+        Fu.hitRing = Fu.gotHitRing();
+
+        // RxData处理
+        Fu.hitEnable = canbox.RxData[0];
+        Fu.color = canbox.RxData[1] == BLUE ? blue : red;
+
+        // if-else状态机
+        if(Fu.hitEnable == true && Fu.hitState == false){
+            Fu.closeCircle();
+            Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
+            Fu.closeFrame();
+        }
+        if(Fu.hitEnable == true && Fu.hitState == true){
+            Fu.closeCircle();
+            Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+            Fu.closeFrame();
+            Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+        }
+        if(Fu.hitEnable == false){
+            Fu.hitState = false;
+            Fu.closeCircle();
+            Fu.closeFrame();
+        }
+
+        HAL_Delay(20);
     }
 }

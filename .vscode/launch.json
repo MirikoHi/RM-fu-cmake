@@ -6,7 +6,7 @@
     "configurations": [
         {
             "cwd": "${workspaceFolder}",
-            "executable": "./build/Debug/2023_Energy_Mechine_Code.elf",
+            "executable": "./build/Debug/2026_Energy_Mechine_Code.elf",
             "name": "Debug with JLink",
             "request": "launch",
             "type": "cortex-debug",
