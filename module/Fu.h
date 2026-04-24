@@ -61,9 +61,9 @@ struct Rings{
  */
 class WS{
 public:
-    static uint8_t Buf_frame_up[NumUp];
-    static uint8_t Buf_frame_down[NumDown];
-    static uint8_t Buf_Circle[NumCircle];
+    static int16_t Buf_frame_up[NumUp];
+    static int16_t Buf_frame_down[NumDown];
+    static int16_t Buf_Circle[NumCircle];
 public:
     /**
      * @brief 将 RGB 转换为 GRB 32-bit 值（WS2812 协议）
@@ -113,6 +113,9 @@ public:
 
     /** @brief 大符击中/未击中状态，外部事件或传感器设置 */
     bool hitState = 0;
+
+    /** @brief 大符亮起/未亮起状态 */
+    bool lightState = 0;
 
     /** @brief 九环按键 */
     Rings rings = {1,1,1,1,1,1,1,1,1};

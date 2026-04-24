@@ -9,9 +9,9 @@ extern DMA_HandleTypeDef hdma_tim2_ch2_ch4;
 extern DMA_HandleTypeDef hdma_tim3_ch1_trig;
 extern DMA_HandleTypeDef hdma_tim4_ch1;
 
-uint8_t WS::Buf_frame_up[NumUp] = {0};
-uint8_t WS::Buf_frame_down[NumDown] = {0};
-uint8_t WS::Buf_Circle[NumCircle] = {0};
+int16_t WS::Buf_frame_up[NumUp] = {0};
+int16_t WS::Buf_frame_down[NumDown] = {0};
+int16_t WS::Buf_Circle[NumCircle] = {0};
 
 uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
     return ((uint32_t)green) << 16 | ((uint32_t)red) << 8 | ((uint32_t)blue);
