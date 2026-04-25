@@ -257,9 +257,9 @@ uint8_t Fu_t::gotHitRing(){
 }
 
 void Fu_t::closeCircle(){
-	for (uint16_t i = 0; i < 270 * 24; i++)
+	for (uint16_t i = 0; i < 275 * 24; i++)
 		WS::Buf_Circle[i] = WS0; // 写入逻辑0的占空比
-	for (uint16_t i = 270 * 24; i < NumCircle; i++)
+	for (uint16_t i = 275 * 24; i < NumCircle; i++)
 		WS::Buf_Circle[i] = 0; // 占空比为0，全为低电平
 	
 	WS::WS_Load_Circle();

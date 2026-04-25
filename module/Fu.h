@@ -20,7 +20,7 @@ extern TIM_HandleTypeDef htim4;
 #define WS1 69 // WS逻辑高
 #define WS0 27 // WS逻辑低
 
-#define NumCircle 24*270 + 224 // 靶环bit数
+#define NumCircle 24*275 + 224 // 靶环bit数
 #define NumUp 24*88 + 224 // 上边框bit数
 #define NumDown 24*92 + 224 // 下边框bit数
 
@@ -116,6 +116,12 @@ public:
 
     /** @brief 大符亮起/未亮起状态 */
     bool lightState = 0;
+
+    /** @brief 大符常亮状态 */
+    bool stayState = 0;
+
+    /** @brief 大符闪烁/不闪烁状态 */
+    bool twinkleState = 0;
 
     /** @brief 九环按键 */
     Rings rings = {1,1,1,1,1,1,1,1,1};

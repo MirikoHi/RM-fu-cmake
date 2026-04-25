@@ -58,7 +58,8 @@ public:
      */
     CanBox(uint32_t stdId);
     CanBox(uint32_t stdId, uint32_t txStdId);
-    // void CanInit(uint32_t stdId);
+    
+    void CanInit();
 
     /**
      * @brief 发送默认数据（使用内部 TxData）
