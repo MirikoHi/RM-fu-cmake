@@ -57,6 +57,11 @@ int16_t resetcnt = 0;
 
 void startup(void){
     canbox.CanInit();
+
+    Fu.hitState = false;
+    Fu.stayState = false;
+    Fu.lightState = false;
+
     Fu.closeCircle();
     HAL_Delay(10);
     Fu.closeFrame();
@@ -90,7 +95,7 @@ void startup(void){
 
         // RxData处理
 #ifndef __DE_BUG
-        uint8_t controlState = canbox.RxData[0]; // 上位机标志位 1 = ready
+        while(!canbox.RxData[0]){}; // 上位机标志位 1 = ready
         Fu.hitEnable = canbox.RxData[1];
         Fu.color = canbox.RxData[2] == BLUE ? blue : red;
         Fu.twinkleState = canbox.RxData[3];
@@ -132,16 +137,16 @@ void startup(void){
         }
         else if(Fu.twinkleState == true){
             uint8_t cnt = 0;
-            while(cnt++ > 3){
+            while(cnt++ < 3){
                 Fu.closeCircle();
                 HAL_Delay(10);
                 Fu.closeFrame();
-                HAL_Delay(500);
+                HAL_Delay(400);
                 Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
                 WS::WS_Load_Circle();
                 HAL_Delay(10);
                 Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
-                HAL_Delay(500);
+                HAL_Delay(400);
             }
             Fu.closeFrame();
             HAL_Delay(10);
@@ -150,7 +155,7 @@ void startup(void){
             __set_FAULTMASK(1); 
             // 复位
             NVIC_SystemReset();
-            HAL_Delay(300);
+            HAL_Delay(200);
         }
 
         HAL_Delay(20);
