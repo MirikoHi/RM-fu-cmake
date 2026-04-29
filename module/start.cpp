@@ -14,7 +14,7 @@
 /**
  * @brief 板的编号，同时决定CAN_ID
  */
-#define BoardNum 3
+#define BoardNum 0
 #if BoardNum == 0
     #define CanID 0x101
     #define TxCanID 0x301
@@ -91,11 +91,16 @@ void startup(void){
         canbox.TxData[1] = Fu.hitState;
         canbox.Send();
 
-        Fu.hitRing = Fu.gotHitRing();
+        if(!Fu.hitState){
+            Fu.hitRing = Fu.gotHitRing();
+        }
 
         // RxData处理
 #ifndef __DE_BUG
-        while(!canbox.RxData[0]){}; // 上位机标志位 1 = ready
+        while(!canbox.RxData[0]){
+            canbox.Send();
+            HAL_Delay(50);
+        }; // 上位机标志位 1 = ready
         Fu.hitEnable = canbox.RxData[1];
         Fu.color = canbox.RxData[2] == BLUE ? blue : red;
         Fu.twinkleState = canbox.RxData[3];
