@@ -55,6 +55,9 @@ Fu_t Fu;
 
 int16_t resetcnt = 0;
 
+/* 最后执行（应用）的主控命令序号，随 20ms 反馈帧回显给主板 */
+uint8_t lastSeq = 0;
+
 void startup(void){
     canbox.CanInit();
 
@@ -86,9 +89,12 @@ void startup(void){
         }
 #endif /* __DE_BUG */
 
-        // TxData处理
+        // TxData处理（反馈帧：字节0=在线，字节1=命中，字节2=实际亮起，字节3=命中环显示，字节4=最后执行命令序号）
         canbox.TxData[0] = BOARD_READY;
         canbox.TxData[1] = Fu.hitState;
+        canbox.TxData[2] = Fu.lightState;
+        canbox.TxData[3] = Fu.stayState;
+        canbox.TxData[4] = lastSeq;
         canbox.Send();
 
         if(!Fu.hitState){
@@ -104,6 +110,7 @@ void startup(void){
         Fu.hitEnable = canbox.RxData[1];
         Fu.color = canbox.RxData[2] == BLUE ? blue : red;
         Fu.twinkleState = canbox.RxData[3];
+        uint8_t rxSeq = canbox.RxData[4];  // 本圈解析到的主控命令序号
 #endif /* __DE_BUG */
 
         // if-else状态机
@@ -162,6 +169,11 @@ void startup(void){
             NVIC_SystemReset();
             HAL_Delay(200);
         }
+
+#ifndef __DE_BUG
+        /* 状态机执行完毕后记录序号：表示“这条命令本圈已被应用” */
+        lastSeq = rxSeq;
+#endif /* __DE_BUG */
 
         HAL_Delay(20);
     }
