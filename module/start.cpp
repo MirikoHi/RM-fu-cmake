@@ -58,6 +58,10 @@ int16_t resetcnt = 0;
 /* 最后执行（应用）的主控命令序号，随 20ms 反馈帧回显给主板 */
 uint8_t lastSeq = 0;
 
+/* 上一次真正渲染到 WS2812 显示的颜色（0xFF 表示当前无显示）；
+   用于“重复点亮改色”：已亮时收到不同颜色的点亮命令就按新颜色重绘 */
+static uint8_t shownColor = 0xFF;
+
 void startup(void){
     canbox.CanInit();
 
@@ -115,15 +119,24 @@ void startup(void){
 
         // if-else状态机
         if(Fu.twinkleState == false){
+            uint8_t curColor = (Fu.color == blue) ? BLUE : RED; // 本圈命令要求的颜色
+
             if(Fu.hitEnable == true && Fu.hitState == false){
-                // Fu.closeCircle();
-                // Fu.closeFrame();
                 if(Fu.lightState == false){
                     Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
                     HAL_Delay(10);
                     Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     HAL_Delay(10);
                     Fu.lightState = true;
+                    shownColor = curColor;
+                }
+                else if(shownColor != curColor){
+                    /* 已点亮且颜色变化：保持点亮状态按新颜色重绘（重复点亮改色） */
+                    Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
+                    HAL_Delay(10);
+                    Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+                    HAL_Delay(10);
+                    shownColor = curColor;
                 }
             }
             if(Fu.hitEnable == true && Fu.hitState == true){
@@ -136,6 +149,15 @@ void startup(void){
                     HAL_Delay(10);
                     Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     Fu.stayState = true;
+                    shownColor = curColor;
+                }
+                else if(shownColor != curColor){
+                    /* 命中环常亮中收到不同颜色的点亮命令：保持显示并换色 */
+                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+                    WS::WS_Load_Circle();
+                    HAL_Delay(10);
+                    Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+                    shownColor = curColor;
                 }
             }
             if(Fu.hitEnable == false){
@@ -145,9 +167,11 @@ void startup(void){
                 Fu.closeCircle();
                 HAL_Delay(10);
                 Fu.closeFrame();
+                shownColor = 0xFF; // 无显示，下一次点亮按当前颜色渲染
             }
         }
         else if(Fu.twinkleState == true){
+            /* 闪烁庆祝：期间不支持换色（此分支内不解析新命令，颜色保持进入时的值） */
             uint8_t cnt = 0;
             while(cnt++ < 3){
                 Fu.closeCircle();
