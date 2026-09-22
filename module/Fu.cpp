@@ -24,6 +24,7 @@ extern DMA_HandleTypeDef hdma_tim4_ch1;
 int16_t WS::Buf_frame_up[NumUp] = {0};
 int16_t WS::Buf_frame_down[NumDown] = {0};
 int16_t WS::Buf_Circle[NumCircle] = {0};
+int16_t WS::Buf_strip[NumStrip] = {0};
 
 /* 把 R/G/B 三个分量按 WS2812 的 GRB 顺序打包成一个 24 bit 数值 */
 uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
@@ -60,6 +61,14 @@ void WS::WS281x_SetPixelRGB(uint8_t pos, uint16_t n, uint8_t red, uint8_t green,
             }
             break;
 		}
+		case strip:{
+            /* 条纹区域：写入 Buf_strip，展开方式与靶环一致 */
+			for (uint8_t i = 0; i < 24; ++i)
+            {
+                Buf_strip[24 * n + i] = (((WS281x_Color(red, green, blue) << i) & 0X800000) ? WS1 : WS0);
+            }
+            break;
+		}
         default:{
             /* 区域非法：不写任何缓冲区 */
             break;
@@ -86,6 +95,11 @@ void WS::WS_Load_Frame_down(){
 	// __HAL_DMA_DISABLE_IT(&hdma_tim2_ch2_ch4, DMA_IT_HT);
     /* 发送 Buf_frame_down 中的全部比较值 */
     HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, (uint32_t *)WS::Buf_frame_down, NumDown);
+}
+
+/* 启动/刷新灯带的 PWM-DMA 传输（TIM1_CH2） */
+void WS::WS_Load_Strip(){
+	HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, (uint32_t *)WS::Buf_strip, NumStrip);
 }
 
 /* 说明：下面两个是 PWM-DMA 发送完成/过半回调，本功能不需要额外处理，故函数体留空 */
@@ -242,6 +256,24 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 	// WS::WS_Load_Circle();
 }
 
+/* 点亮灯带：把该灯带的灯珠序号区间写入缓冲区 */
+void Fu_t::lightenStrip(uint8_t red, uint8_t green, uint8_t blue){
+    for(uint16_t n = 0; n < 80; n++){
+		WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
+	}
+	/* 灯带数据就绪，启动 DMA 输出 */
+	WS::WS_Load_Strip();
+}
+
+/* 点亮特定灯带：把该灯带的灯珠序号区间写入缓冲区，灯带编号从零开始 */
+void Fu_t::lighten_Special_Strip(uint8_t start_num, uint8_t end_num, uint8_t red, uint8_t green, uint8_t blue){
+	for(uint16_t n = start_num; n <= end_num; n++){
+		WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
+	}
+	/* 灯带数据就绪，启动 DMA 输出 */
+	WS::WS_Load_Strip();
+}
+
 /* 读取九个环的击中检测引脚（低电平表示被击中），按由外到内的顺序返回环号并更新 hitState */
 uint8_t Fu_t::gotHitRing(){
     /* 一次性采集九个环对应的 GPIO 电平（0 表示该环被击中） */
@@ -335,4 +367,16 @@ void Fu_t::closeFrame(){
 	
 	/* 下靶框熄灭结果下发 */
 	WS::WS_Load_Frame_down();
+}
+
+void Fu_t::closeStrip(){
+	/* 灯带：80 颗灯珠的数据位全部写逻辑 0 */
+	for (uint16_t i = 0; i < 80 * 24; i++)
+		WS::Buf_strip[i] = WS0; // 写入逻辑0的占空比
+	/* 灯带剩余 224 项为复位段 */
+	for (uint16_t i = 80 * 24; i < NumStrip; i++)
+		WS::Buf_strip[i] = 0; // 占空比为0，全为低电平
+	
+	/* 灯带熄灭结果下发 */
+	WS::WS_Load_Strip();
 }

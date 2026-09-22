@@ -23,6 +23,7 @@ extern TIM_HandleTypeDef htim4;
 #define NumCircle 24*275 + 224 // 靶环bit数
 #define NumUp 24*88 + 224 // 上边框bit数
 #define NumDown 24*92 + 224 // 下边框bit数
+#define NumStrip 24*80 + 224 // 条纹bit数
 
 enum Color{
     red,
@@ -35,7 +36,8 @@ enum Color{
 enum {
     circle,
     up,
-    down
+    down,
+    strip
 };
 
 /**
@@ -63,6 +65,7 @@ class WS{
 public:
     static int16_t Buf_frame_up[NumUp];
     static int16_t Buf_frame_down[NumDown];
+    static int16_t Buf_strip[NumStrip];
     static int16_t Buf_Circle[NumCircle];
 public:
     /**
@@ -95,6 +98,11 @@ public:
      * @brief 启动/刷新下边框的 DMA 传输
      */
     static void WS_Load_Frame_down();
+
+    /**
+     * @brief 启动/刷新灯带的 DMA 传输
+     */
+    static void WS_Load_Strip();
 };
 
 /**
@@ -153,6 +161,16 @@ public:
     void lightenFrame(uint16_t red, uint8_t green, uint8_t blue);
 
     /**
+     * @brief 点亮灯带
+     */
+    void lightenStrip(uint8_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief 点亮特定灯带
+     */
+    void lighten_Special_Strip(uint8_t start_num, uint8_t end_num, uint8_t red, uint8_t green, uint8_t blue);
+
+       /**
      * @brief 熄灭所有靶环
      */
     void closeCircle();
@@ -161,6 +179,11 @@ public:
      * @brief 熄灭所有靶框
      */
     void closeFrame();
+
+    /**
+     * @brief 熄灭灯带
+     */
+    void closeStrip();
 
     /**
      * @brief 检测并返回命中环号，此处也更新hitState

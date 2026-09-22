@@ -87,6 +87,8 @@ void startup(void){
     HAL_Delay(10);
     Fu.closeFrame();
     HAL_Delay(100);
+    Fu.closeStrip();
+    HAL_Delay(100);
     while(1){
 
 #ifdef __DE_BUG
@@ -135,6 +137,7 @@ void startup(void){
         Fu.color = canbox.RxData[2] == BLUE ? blue : red;
         Fu.twinkleState = canbox.RxData[3];
         uint8_t rxSeq = canbox.RxData[4];  // 本圈解析到的主控命令序号
+        uint8_t fu_mode = canbox.RxData[5];  // 大/小能量机关模式
 #endif /* __DE_BUG */
 
         // if-else状态机
@@ -163,8 +166,8 @@ void startup(void){
                     shownColor = curColor;
                 }
             }
-            /* 已经被打中：熄灭全部，只让命中的那一环常亮，并点亮靶框 */
-            if(Fu.hitEnable == true && Fu.hitState == true){
+            /* 已经被打中：熄灭全部，只让命中的那一环常亮，并点亮灯带 */
+            if(Fu.hitEnable == true && Fu.hitState == true && fu_mode == 0){
                 if(Fu.stayState == false){
                     /* 首次进入命中显示：先全灭，再单独点亮命中的环 */
                     Fu.closeCircle();
@@ -177,6 +180,8 @@ void startup(void){
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     /* 记录进入常亮状态以及当前颜色 */
                     Fu.closeFrame();
+                    HAL_Delay(10);
+                    Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
                     Fu.stayState = true;
                     shownColor = curColor;
                 }
@@ -185,6 +190,8 @@ void startup(void){
                     Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
                     /* 同上，换色后要刷新 DMA */
                     WS::WS_Load_Circle();
+                    HAL_Delay(10);
+                    Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
                     HAL_Delay(10);
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     shownColor = curColor;
@@ -198,6 +205,8 @@ void startup(void){
                 Fu.closeCircle();
                 HAL_Delay(10);
                 Fu.closeFrame();
+                HAL_Delay(10);
+                Fu.closeStrip();
                 shownColor = 0xFF; // 无显示，下一次点亮按当前颜色渲染
             }
         }
@@ -210,17 +219,27 @@ void startup(void){
                 Fu.closeCircle();
                 HAL_Delay(10);
                 Fu.closeFrame();
+                HAL_Delay(10);
+                Fu.closeStrip();
                 HAL_Delay(400);
-                Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+                if(fu_mode == 0){
+                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+                } else if(fu_mode == 1){
+                    Fu.color == blue ? Fu.lightenRing(9, 0, 0, 150) : Fu.lightenRing(9, 150, 0, 0);
+                }
                 WS::WS_Load_Circle();
                 HAL_Delay(10);
                 Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+                HAL_Delay(10);
+                Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
                 HAL_Delay(400);
             }
             /* 三轮闪完：先熄灯，再复位单片机，回到 startup 开头重新开始 */
             Fu.closeFrame();
             HAL_Delay(10);
             Fu.closeCircle();
+            HAL_Delay(10);
+            Fu.closeStrip();
             // 关闭所有中断
             __set_FAULTMASK(1); 
             // 复位
