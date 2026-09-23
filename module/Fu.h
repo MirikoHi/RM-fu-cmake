@@ -17,13 +17,14 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 
-#define WS1 69 // WS逻辑高
-#define WS0 27 // WS逻辑低
+#define WS1 68 // WS逻辑高
+#define WS0 18 // WS逻辑低
 
 #define NumCircle 24*275 + 224 // 靶环bit数
 #define NumUp 24*88 + 224 // 上边框bit数
 #define NumDown 24*92 + 224 // 下边框bit数
 #define NumStrip 24*80 + 224 // 条纹bit数
+#define NumArm 24*256 + 224 // 灯臂bit数
 
 enum Color{
     red,
@@ -37,7 +38,8 @@ enum {
     circle,
     up,
     down,
-    strip
+    strip,
+    arm
 };
 
 /**
@@ -67,6 +69,7 @@ public:
     static int16_t Buf_frame_down[NumDown];
     static int16_t Buf_strip[NumStrip];
     static int16_t Buf_Circle[NumCircle];
+    static int16_t Buf_arm[NumArm];
 public:
     /**
      * @brief 将 RGB 转换为 GRB 32-bit 值（WS2812 协议）
@@ -103,6 +106,12 @@ public:
      * @brief 启动/刷新灯带的 DMA 传输
      */
     static void WS_Load_Strip();
+
+    /**
+     * @brief 启动/刷新灯臂的 DMA 传输
+     */
+    static void WS_Load_Arm();
+
 };
 
 /**
@@ -137,6 +146,18 @@ public:
     /** @brief 存储击打的环数 */
     uint8_t hitRing;
 
+    /** @brief 灯臂箭头流水：是否正在推进 */
+    bool armFlowOn = false;
+
+    /** @brief 灯臂箭头流水：参考箭头尖端所在列（0 ~ 周期-1） */
+    uint8_t armPhase = 0;
+
+    /** @brief 灯臂箭头流水：上一次推进的时间戳 */
+    uint32_t armLastTick = 0;
+
+    /** @brief 灯臂箭头流水：当前颜色 */
+    uint8_t armRed = 0, armGreen = 0, armBlue = 0;
+
 public:
     Fu_t() = default;
 
@@ -170,7 +191,7 @@ public:
      */
     void lighten_Special_Strip(uint8_t start_num, uint8_t end_num, uint8_t red, uint8_t green, uint8_t blue);
 
-       /**
+    /**
      * @brief 熄灭所有靶环
      */
     void closeCircle();
@@ -190,6 +211,26 @@ public:
      * @return 被击中的环号（1..9），无命中时返回 0
      */
     uint8_t gotHitRing();
+
+    /**
+     * @brief 灯臂：开始箭头流水（灯板准备被击打时亮），已在跑时只更新颜色
+     */
+    void startArmFlow(uint8_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief 灯臂：256 颗整块点亮（击打完成）
+     */
+    void lightenArm(uint8_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief 灯臂：整块熄灭（主控未允许击打）
+     */
+    void closeArm(void);
+
+    /**
+     * @brief 灯臂：主循环每拍调用一次，满 500ms 向左推进一格
+     */
+    void armFlowTick(void);
 };
 
 /** 全局 Fu 实例 */

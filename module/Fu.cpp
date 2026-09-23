@@ -9,6 +9,7 @@
  */
 #include "Fu.h"
 #include "tim.h"
+#include "ArmLayout.h"
 // #include <algorithm>
 
 /* 各定时器 DMA 通道句柄，由 CubeMX 在 tim.c / stm32f1xx_hal_msp.c 中定义并初始化 */
@@ -25,6 +26,7 @@ int16_t WS::Buf_frame_up[NumUp] = {0};
 int16_t WS::Buf_frame_down[NumDown] = {0};
 int16_t WS::Buf_Circle[NumCircle] = {0};
 int16_t WS::Buf_strip[NumStrip] = {0};
+int16_t WS::Buf_arm[NumArm] = {0};
 
 /* 把 R/G/B 三个分量按 WS2812 的 GRB 顺序打包成一个 24 bit 数值 */
 uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
@@ -69,6 +71,14 @@ void WS::WS281x_SetPixelRGB(uint8_t pos, uint16_t n, uint8_t red, uint8_t green,
             }
             break;
 		}
+		case arm:{
+            /* 灯臂区域：写入 Buf_arm，展开方式与靶环一致 */
+			for (uint8_t i = 0; i < 24; ++i)
+            {
+                Buf_arm[24 * n + i] = (((WS281x_Color(red, green, blue) << i) & 0X800000) ? WS1 : WS0);
+            }
+            break;
+		}
         default:{
             /* 区域非法：不写任何缓冲区 */
             break;
@@ -97,9 +107,14 @@ void WS::WS_Load_Frame_down(){
     HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, (uint32_t *)WS::Buf_frame_down, NumDown);
 }
 
-/* 启动/刷新灯带的 PWM-DMA 传输（TIM1_CH2） */
+/* 启动/刷新灯带的 PWM-DMA 传输（TIM1_CH1） */
 void WS::WS_Load_Strip(){
-	HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, (uint32_t *)WS::Buf_strip, NumStrip);
+	HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_1, (uint32_t *)WS::Buf_strip, NumStrip);
+}
+
+/* 启动/刷新灯臂的 PWM-DMA 传输（TIM1_CH2） */
+void WS::WS_Load_Arm(){
+	HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, (uint32_t *)WS::Buf_arm, NumArm);
 }
 
 /* 说明：下面两个是 PWM-DMA 发送完成/过半回调，本功能不需要额外处理，故函数体留空 */
@@ -379,4 +394,98 @@ void Fu_t::closeStrip(){
 	
 	/* 灯带熄灭结果下发 */
 	WS::WS_Load_Strip();
+}
+
+/* ========================== 灯臂箭头流水 ==========================
+ * 灯臂：32 列 × 8 行 = 256 颗，编号见 ArmLayout.h
+ *       （index = (7 - y) * 32 + x，每行都从最左列向右走，行尾回线接下一行左端）。
+ * 箭头形状：每行亮 3 格，行与行之间错开 1 格，构成指向左的“<”；
+ *           同一行上相邻箭头之间空 2 格，所以沿列方向的重复周期 = 3 + 2 = 5。
+ * 每 500ms 整排向左走一格：左边出界的格子直接丢掉，右边由周期性副本自动补上。
+ */
+#define ARM_ARROW_W      3                              /* 箭头每行亮起的格子数 */
+#define ARM_ARROW_GAP    2                              /* 同一行相邻箭头之间的空格数 */
+#define ARM_FLOW_PERIOD  (ARM_ARROW_W + ARM_ARROW_GAP)  /* 5：沿列方向的重复周期 */
+#define ARM_FLOW_STEP_MS 500                            /* 每 0.5s 向左走一格 */
+
+/* 每行亮起的起始列，和箭头的 24 个坐标一一对应 */
+static const uint8_t ARM_ARROW_START[ARM_ROWS] = {3, 2, 1, 0, 0, 1, 2, 3};
+
+/* 灯臂整条写逻辑 0：只写缓冲，不启动 DMA */
+static void Arm_ClearBuffer(){
+	for (uint16_t i = 0; i < ARM_LED_NUM * 24; i++)
+		WS::Buf_arm[i] = WS0;   /* 数据位全部写逻辑 0 的占空比 */
+	for (uint16_t i = ARM_LED_NUM * 24; i < NumArm; i++)
+		WS::Buf_arm[i] = 0;     /* 复位段占空比为 0，全为低电平 */
+}
+
+/* 画一帧箭头流水：phase 为参考箭头尖端所在的列（0 ~ ARM_FLOW_PERIOD-1） */
+static void Arm_DrawArrowFrame(uint8_t phase, uint8_t red, uint8_t green, uint8_t blue){
+	int16_t pos, x;
+	uint8_t y, d;
+
+	Arm_ClearBuffer();
+
+	/* 相位只取 0~4，向左向右各铺若干份周期副本，覆盖整块灯臂 */
+	for (pos = (int16_t)phase - ARM_FLOW_PERIOD; pos < ARM_COLS; pos += ARM_FLOW_PERIOD)
+	{
+		for (y = 0; y < ARM_ROWS; y++)
+		{
+			for (d = 0; d < ARM_ARROW_W; d++)
+			{
+				x = pos + ARM_ARROW_START[y] + d;
+				if (x < 0 || x >= ARM_COLS) continue;  /* 左边超出范围的部分不要，右边板外也一样 */
+				WS::WS281x_SetPixelRGB(arm, XY_To_Index((uint8_t)x, y), red, green, blue);
+			}
+		}
+	}
+
+	WS::WS_Load_Arm();  /* 一帧只启动一次 DMA */
+}
+
+/* 灯臂：开始箭头流水（灯板准备被击打），已在跑时只更新颜色 */
+void Fu_t::startArmFlow(uint8_t red, uint8_t green, uint8_t blue){
+	armRed = red;
+	armGreen = green;
+	armBlue = blue;
+
+	if (armFlowOn == false)
+	{
+		armFlowOn = true;
+		armPhase = 0;                       /* 从“满屏箭头”的相位起步 */
+		armLastTick = HAL_GetTick();
+	}
+
+	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
+}
+
+/* 灯臂：256 颗整块点亮（击打完成） */
+void Fu_t::lightenArm(uint8_t red, uint8_t green, uint8_t blue){
+	armFlowOn = false;  /* 整块亮时不再推进流水 */
+
+	for (uint16_t n = 0; n < ARM_LED_NUM; n++)
+		WS::WS281x_SetPixelRGB(arm, n, red, green, blue);
+
+	WS::WS_Load_Arm();
+}
+
+/* 灯臂：整块熄灭（主控未允许击打） */
+void Fu_t::closeArm(void){
+	armFlowOn = false;
+	Arm_ClearBuffer();
+	WS::WS_Load_Arm();
+}
+
+/* 灯臂：主循环每拍调用一次，满 500ms 向左推进一格并重画 */
+void Fu_t::armFlowTick(void){
+	uint32_t now;
+
+	if (armFlowOn == false) return;
+
+	now = HAL_GetTick();
+	if ((uint32_t)(now - armLastTick) < ARM_FLOW_STEP_MS) return;
+
+	armLastTick += ARM_FLOW_STEP_MS;  /* 累加固定步长，长时间运行不累积漂移 */
+	armPhase = (uint8_t)((armPhase + ARM_FLOW_PERIOD - 1) % ARM_FLOW_PERIOD);
+	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
 }

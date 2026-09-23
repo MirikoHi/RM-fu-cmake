@@ -17,7 +17,7 @@
  */
 /* 每块板烧同一份程序，靠板号区分 CAN 收发 ID：
    0~4 号板分别对应 0x101~0x105（接收）和 0x301~0x305（发送）。换板号就是改这里 */
-#define BoardNum 4
+#define BoardNum 1
 #if BoardNum == 0
     #define CanID 0x101
     #define TxCanID 0x301
@@ -89,7 +89,17 @@ void startup(void){
     HAL_Delay(100);
     Fu.closeStrip();
     HAL_Delay(100);
+    Fu.closeStrip();
+    HAL_Delay(100);
+
+    /* 灯臂：上电先整块熄灭 */
+    Fu.closeArm();
+    HAL_Delay(100);
+
     while(1){
+
+        /* 灯臂箭头流水：非阻塞推进，满 500ms 左移一格 */
+        Fu.armFlowTick();
 
 #ifdef __DE_BUG
         /* 自测模式：直接打开命中检测，灯保持点亮 */
@@ -137,7 +147,8 @@ void startup(void){
         Fu.color = canbox.RxData[2] == BLUE ? blue : red;
         Fu.twinkleState = canbox.RxData[3];
         uint8_t rxSeq = canbox.RxData[4];  // 本圈解析到的主控命令序号
-        uint8_t fu_mode = canbox.RxData[5];  // 大/小能量机关模式
+        // uint8_t fu_mode = canbox.RxData[5];  // 大/小能量机关模式
+        uint8_t fu_mode = 0;
 #endif /* __DE_BUG */
 
         // if-else状态机
@@ -151,6 +162,8 @@ void startup(void){
                     /* 第一次点亮：按当前颜色绘制十字和靶框 */
                     Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
                     HAL_Delay(10);
+                    /* 灯板准备被击打：灯臂亮箭头流水 */
+                    Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     // HAL_Delay(10);
                     /* 记录已点亮，并记住这次渲染用的颜色 */
@@ -161,6 +174,8 @@ void startup(void){
                     /* 已点亮且颜色变化：保持点亮状态按新颜色重绘（重复点亮改色） */
                     Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
                     HAL_Delay(10);
+                    /* 灯板准备被击打：灯臂箭头流水按新颜色重绘 */
+                    Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     // HAL_Delay(10);
                     shownColor = curColor;
@@ -182,6 +197,8 @@ void startup(void){
                     Fu.closeFrame();
                     HAL_Delay(10);
                     Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
+                    /* 击打完成：灯臂整块点亮 */
+                    Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
                     Fu.stayState = true;
                     shownColor = curColor;
                 }
@@ -192,6 +209,8 @@ void startup(void){
                     WS::WS_Load_Circle();
                     HAL_Delay(10);
                     Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
+                    /* 击打完成：灯臂整块点亮（换色重绘） */
+                    Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
                     HAL_Delay(10);
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     shownColor = curColor;
@@ -207,6 +226,7 @@ void startup(void){
                 Fu.closeFrame();
                 HAL_Delay(10);
                 Fu.closeStrip();
+                Fu.closeArm();
                 shownColor = 0xFF; // 无显示，下一次点亮按当前颜色渲染
             }
         }
@@ -221,6 +241,7 @@ void startup(void){
                 Fu.closeFrame();
                 HAL_Delay(10);
                 Fu.closeStrip();
+                Fu.closeArm();
                 HAL_Delay(400);
                 if(fu_mode == 0){
                     Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
@@ -232,6 +253,8 @@ void startup(void){
                 Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                 HAL_Delay(10);
                 Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
+                /* 庆祝闪烁：灯臂跟着闪 */
+                Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
                 HAL_Delay(400);
             }
             /* 三轮闪完：先熄灯，再复位单片机，回到 startup 开头重新开始 */
@@ -240,6 +263,7 @@ void startup(void){
             Fu.closeCircle();
             HAL_Delay(10);
             Fu.closeStrip();
+            Fu.closeArm();
             // 关闭所有中断
             __set_FAULTMASK(1); 
             // 复位
