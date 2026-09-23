@@ -28,6 +28,11 @@ int16_t WS::Buf_Circle[NumCircle] = {0};
 int16_t WS::Buf_strip[NumStrip] = {0};
 int16_t WS::Buf_arm[NumArm] = {0};
 
+#define ARM_ARROW_W      3                              /* 箭头每行亮起的格子数 */
+#define ARM_ARROW_GAP    2                              /* 同一行相邻箭头之间的空格数 */
+#define ARM_FLOW_PERIOD  (ARM_ARROW_W + ARM_ARROW_GAP)  /* 5：沿列方向的重复周期 */
+#define ARM_FLOW_STEP_MS 500                            /* 每 0.5s 向左走一格 */
+
 /* 把 R/G/B 三个分量按 WS2812 的 GRB 顺序打包成一个 24 bit 数值 */
 uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
     /* G 占高 8 位、R 占中间 8 位、B 占低 8 位 */
@@ -396,18 +401,6 @@ void Fu_t::closeStrip(){
 	WS::WS_Load_Strip();
 }
 
-/* ========================== 灯臂箭头流水 ==========================
- * 灯臂：32 列 × 8 行 = 256 颗，编号见 ArmLayout.h
- *       （index = (7 - y) * 32 + x，每行都从最左列向右走，行尾回线接下一行左端）。
- * 箭头形状：每行亮 3 格，行与行之间错开 1 格，构成指向左的“<”；
- *           同一行上相邻箭头之间空 2 格，所以沿列方向的重复周期 = 3 + 2 = 5。
- * 每 500ms 整排向左走一格：左边出界的格子直接丢掉，右边由周期性副本自动补上。
- */
-#define ARM_ARROW_W      3                              /* 箭头每行亮起的格子数 */
-#define ARM_ARROW_GAP    2                              /* 同一行相邻箭头之间的空格数 */
-#define ARM_FLOW_PERIOD  (ARM_ARROW_W + ARM_ARROW_GAP)  /* 5：沿列方向的重复周期 */
-#define ARM_FLOW_STEP_MS 500                            /* 每 0.5s 向左走一格 */
-
 /* 每行亮起的起始列，和箭头的 24 个坐标一一对应 */
 static const uint8_t ARM_ARROW_START[ARM_ROWS] = {3, 2, 1, 0, 0, 1, 2, 3};
 
@@ -440,7 +433,7 @@ static void Arm_DrawArrowFrame(uint8_t phase, uint8_t red, uint8_t green, uint8_
 		}
 	}
 
-	WS::WS_Load_Arm();  /* 一帧只启动一次 DMA */
+	WS::WS_Load_Arm();
 }
 
 /* 灯臂：开始箭头流水（灯板准备被击打），已在跑时只更新颜色 */
@@ -452,7 +445,7 @@ void Fu_t::startArmFlow(uint8_t red, uint8_t green, uint8_t blue){
 	if (armFlowOn == false)
 	{
 		armFlowOn = true;
-		armPhase = 0;                       /* 从“满屏箭头”的相位起步 */
+		armPhase = 0;
 		armLastTick = HAL_GetTick();
 	}
 
@@ -485,7 +478,7 @@ void Fu_t::armFlowTick(void){
 	now = HAL_GetTick();
 	if ((uint32_t)(now - armLastTick) < ARM_FLOW_STEP_MS) return;
 
-	armLastTick += ARM_FLOW_STEP_MS;  /* 累加固定步长，长时间运行不累积漂移 */
+	armLastTick += ARM_FLOW_STEP_MS;
 	armPhase = (uint8_t)((armPhase + ARM_FLOW_PERIOD - 1) % ARM_FLOW_PERIOD);
 	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
 }

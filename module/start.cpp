@@ -101,182 +101,182 @@ void startup(void){
         /* 灯臂箭头流水：非阻塞推进，满 500ms 左移一格 */
         Fu.armFlowTick();
 
-#ifdef __DE_BUG
-        /* 自测模式：直接打开命中检测，灯保持点亮 */
-        Fu.hitEnable = true;
-        while(Fu.hitState == true){
-            /* 命中状态下每 50ms 计一次数，超过 20 次（约 1 秒）就熄灯并复位 */
-            if(resetcnt++ > 20){
-                Fu.closeFrame();
-                HAL_Delay(10);
-                Fu.closeCircle();
-                resetcnt = 0;
-                // 关闭所有中断
-                __set_FAULTMASK(1); 
-                // 复位
-                NVIC_SystemReset();
-                HAL_Delay(300);
-            }
-            HAL_Delay(50);
-        }
-#endif /* __DE_BUG */
+// #ifdef __DE_BUG
+//         /* 自测模式：直接打开命中检测，灯保持点亮 */
+//         Fu.hitEnable = true;
+//         while(Fu.hitState == true){
+//             /* 命中状态下每 50ms 计一次数，超过 20 次（约 1 秒）就熄灯并复位 */
+//             if(resetcnt++ > 20){
+//                 Fu.closeFrame();
+//                 HAL_Delay(10);
+//                 Fu.closeCircle();
+//                 resetcnt = 0;
+//                 // 关闭所有中断
+//                 __set_FAULTMASK(1); 
+//                 // 复位
+//                 NVIC_SystemReset();
+//                 HAL_Delay(300);
+//             }
+//             HAL_Delay(50);
+//         }
+// #endif /* __DE_BUG */
 
-        // TxData处理（反馈帧：字节0=在线，字节1=命中，字节2=实际亮起，字节3=命中环显示，字节4=最后执行命令序号）
-        canbox.TxData[0] = BOARD_READY;
-        canbox.TxData[1] = Fu.hitState;
-        canbox.TxData[2] = Fu.lightState;
-        canbox.TxData[3] = Fu.stayState;
-        canbox.TxData[4] = lastSeq;
-        /* 每圈发送一次应答帧，主控据此判断本板在线并同步命令序号 */
-        canbox.Send();
+//         // TxData处理（反馈帧：字节0=在线，字节1=命中，字节2=实际亮起，字节3=命中环显示，字节4=最后执行命令序号）
+//         canbox.TxData[0] = BOARD_READY;
+//         canbox.TxData[1] = Fu.hitState;
+//         canbox.TxData[2] = Fu.lightState;
+//         canbox.TxData[3] = Fu.stayState;
+//         canbox.TxData[4] = lastSeq;
+//         /* 每圈发送一次应答帧，主控据此判断本板在线并同步命令序号 */
+//         canbox.Send();
 
-        /* 当前没有命中信号时才去扫描环，避免覆盖已经锁定的命中结果 */
-        if(!Fu.hitState){
-            Fu.hitRing = Fu.gotHitRing();
-        }
+//         /* 当前没有命中信号时才去扫描环，避免覆盖已经锁定的命中结果 */
+//         if(!Fu.hitState){
+//             Fu.hitRing = Fu.gotHitRing();
+//         }
 
-        // RxData处理
-#ifndef __DE_BUG
-        /* 等主控把“就绪”标志（字节 0）置 1；等待期间每 50ms 重发一次应答帧 */
-        while(!canbox.RxData[0]){
-            canbox.Send();
-            HAL_Delay(50);
-        }; // 上位机标志位 1 = ready
-        /* 解析本圈命令：字节1 是否允许命中，字节2 颜色，字节3 是否闪烁，字节4 命令序号 */
-        Fu.hitEnable = canbox.RxData[1];
-        Fu.color = canbox.RxData[2] == BLUE ? blue : red;
-        Fu.twinkleState = canbox.RxData[3];
-        uint8_t rxSeq = canbox.RxData[4];  // 本圈解析到的主控命令序号
-        // uint8_t fu_mode = canbox.RxData[5];  // 大/小能量机关模式
-        uint8_t fu_mode = 0;
-#endif /* __DE_BUG */
+//         // RxData处理
+// #ifndef __DE_BUG
+//         /* 等主控把“就绪”标志（字节 0）置 1；等待期间每 50ms 重发一次应答帧 */
+//         while(!canbox.RxData[0]){
+//             canbox.Send();
+//             HAL_Delay(50);
+//         }; // 上位机标志位 1 = ready
+//         /* 解析本圈命令：字节1 是否允许命中，字节2 颜色，字节3 是否闪烁，字节4 命令序号 */
+//         Fu.hitEnable = canbox.RxData[1];
+//         Fu.color = canbox.RxData[2] == BLUE ? blue : red;
+//         Fu.twinkleState = canbox.RxData[3];
+//         uint8_t rxSeq = canbox.RxData[4];  // 本圈解析到的主控命令序号
+//         // uint8_t fu_mode = canbox.RxData[5];  // 大/小能量机关模式
+//         uint8_t fu_mode = 0;
+// #endif /* __DE_BUG */
 
-        // if-else状态机
-        /* 分支一：正常显示（不需要闪烁庆祝） */
-        if(Fu.twinkleState == false){
-            uint8_t curColor = (Fu.color == blue) ? BLUE : RED; // 本圈命令要求的颜色
+//         // if-else状态机
+//         /* 分支一：正常显示（不需要闪烁庆祝） */
+//         if(Fu.twinkleState == false){
+//             uint8_t curColor = (Fu.color == blue) ? BLUE : RED; // 本圈命令要求的颜色
 
-            /* 允许命中但还没被打中：保持十字与靶框点亮 */
-            if(Fu.hitEnable == true && Fu.hitState == false){
-                if(Fu.lightState == false){
-                    /* 第一次点亮：按当前颜色绘制十字和靶框 */
-                    Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
-                    HAL_Delay(10);
-                    /* 灯板准备被击打：灯臂亮箭头流水 */
-                    Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
-                    // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
-                    // HAL_Delay(10);
-                    /* 记录已点亮，并记住这次渲染用的颜色 */
-                    Fu.lightState = true;
-                    shownColor = curColor;
-                }
-                else if(shownColor != curColor){
-                    /* 已点亮且颜色变化：保持点亮状态按新颜色重绘（重复点亮改色） */
-                    Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
-                    HAL_Delay(10);
-                    /* 灯板准备被击打：灯臂箭头流水按新颜色重绘 */
-                    Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
-                    // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
-                    // HAL_Delay(10);
-                    shownColor = curColor;
-                }
-            }
-            /* 已经被打中：熄灭全部，只让命中的那一环常亮，并点亮灯带 */
-            if(Fu.hitEnable == true && Fu.hitState == true && fu_mode == 0){
-                if(Fu.stayState == false){
-                    /* 首次进入命中显示：先全灭，再单独点亮命中的环 */
-                    Fu.closeCircle();
-                    HAL_Delay(10);
-                    Fu.closeFrame();
-                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
-                    /* lightenRing 只改缓冲区，这里手动刷新一次 DMA 才会显示出来 */
-                    WS::WS_Load_Circle();
-                    HAL_Delay(10);
-                    // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
-                    /* 记录进入常亮状态以及当前颜色 */
-                    Fu.closeFrame();
-                    HAL_Delay(10);
-                    Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
-                    /* 击打完成：灯臂整块点亮 */
-                    Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
-                    Fu.stayState = true;
-                    shownColor = curColor;
-                }
-                else if(shownColor != curColor){
-                    /* 命中环常亮中收到不同颜色的点亮命令：保持显示并换色 */
-                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
-                    /* 同上，换色后要刷新 DMA */
-                    WS::WS_Load_Circle();
-                    HAL_Delay(10);
-                    Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
-                    /* 击打完成：灯臂整块点亮（换色重绘） */
-                    Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
-                    HAL_Delay(10);
-                    // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
-                    shownColor = curColor;
-                }
-            }
-            /* 主控不再允许命中：熄灯并把状态机复位，等下一条点亮命令 */
-            if(Fu.hitEnable == false){
-                Fu.hitState = false;
-                Fu.stayState = false;
-                Fu.lightState = false;
-                Fu.closeCircle();
-                HAL_Delay(10);
-                Fu.closeFrame();
-                HAL_Delay(10);
-                Fu.closeStrip();
-                Fu.closeArm();
-                shownColor = 0xFF; // 无显示，下一次点亮按当前颜色渲染
-            }
-        }
-        /* 分支二：闪烁庆祝，闪三下后复位单片机（表示本回合结束） */
-        else if(Fu.twinkleState == true){
-            /* 闪烁庆祝：期间不支持换色（此分支内不解析新命令，颜色保持进入时的值） */
-            uint8_t cnt = 0;
-            /* 一轮 = 熄灭约 400ms + 点亮约 400ms（各另有 10ms 等待发送），共三轮 */
-            while(cnt++ < 3){
-                Fu.closeCircle();
-                HAL_Delay(10);
-                Fu.closeFrame();
-                HAL_Delay(10);
-                Fu.closeStrip();
-                Fu.closeArm();
-                HAL_Delay(400);
-                if(fu_mode == 0){
-                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
-                } else if(fu_mode == 1){
-                    Fu.color == blue ? Fu.lightenRing(9, 0, 0, 150) : Fu.lightenRing(9, 150, 0, 0);
-                }
-                WS::WS_Load_Circle();
-                HAL_Delay(10);
-                Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
-                HAL_Delay(10);
-                Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
-                /* 庆祝闪烁：灯臂跟着闪 */
-                Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
-                HAL_Delay(400);
-            }
-            /* 三轮闪完：先熄灯，再复位单片机，回到 startup 开头重新开始 */
-            Fu.closeFrame();
-            HAL_Delay(10);
-            Fu.closeCircle();
-            HAL_Delay(10);
-            Fu.closeStrip();
-            Fu.closeArm();
-            // 关闭所有中断
-            __set_FAULTMASK(1); 
-            // 复位
-            NVIC_SystemReset();
-            HAL_Delay(200);
-        }
+//             /* 允许命中但还没被打中：保持十字与靶框点亮 */
+//             if(Fu.hitEnable == true && Fu.hitState == false){
+//                 if(Fu.lightState == false){
+//                     /* 第一次点亮：按当前颜色绘制十字和靶框 */
+//                     Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
+//                     HAL_Delay(10);
+//                     /* 灯板准备被击打：灯臂亮箭头流水 */
+//                     Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
+//                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+//                     // HAL_Delay(10);
+//                     /* 记录已点亮，并记住这次渲染用的颜色 */
+//                     Fu.lightState = true;
+//                     shownColor = curColor;
+//                 }
+//                 else if(shownColor != curColor){
+//                     /* 已点亮且颜色变化：保持点亮状态按新颜色重绘（重复点亮改色） */
+//                     Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
+//                     HAL_Delay(10);
+//                     /* 灯板准备被击打：灯臂箭头流水按新颜色重绘 */
+//                     Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
+//                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+//                     // HAL_Delay(10);
+//                     shownColor = curColor;
+//                 }
+//             }
+//             /* 已经被打中：熄灭全部，只让命中的那一环常亮，并点亮灯带 */
+//             if(Fu.hitEnable == true && Fu.hitState == true && fu_mode == 0){
+//                 if(Fu.stayState == false){
+//                     /* 首次进入命中显示：先全灭，再单独点亮命中的环 */
+//                     Fu.closeCircle();
+//                     HAL_Delay(10);
+//                     Fu.closeFrame();
+//                     Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+//                     /* lightenRing 只改缓冲区，这里手动刷新一次 DMA 才会显示出来 */
+//                     WS::WS_Load_Circle();
+//                     HAL_Delay(10);
+//                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+//                     /* 记录进入常亮状态以及当前颜色 */
+//                     Fu.closeFrame();
+//                     HAL_Delay(10);
+//                     Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
+//                     /* 击打完成：灯臂整块点亮 */
+//                     Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
+//                     Fu.stayState = true;
+//                     shownColor = curColor;
+//                 }
+//                 else if(shownColor != curColor){
+//                     /* 命中环常亮中收到不同颜色的点亮命令：保持显示并换色 */
+//                     Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+//                     /* 同上，换色后要刷新 DMA */
+//                     WS::WS_Load_Circle();
+//                     HAL_Delay(10);
+//                     Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
+//                     /* 击打完成：灯臂整块点亮（换色重绘） */
+//                     Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
+//                     HAL_Delay(10);
+//                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+//                     shownColor = curColor;
+//                 }
+//             }
+//             /* 主控不再允许命中：熄灯并把状态机复位，等下一条点亮命令 */
+//             if(Fu.hitEnable == false){
+//                 Fu.hitState = false;
+//                 Fu.stayState = false;
+//                 Fu.lightState = false;
+//                 Fu.closeCircle();
+//                 HAL_Delay(10);
+//                 Fu.closeFrame();
+//                 HAL_Delay(10);
+//                 Fu.closeStrip();
+//                 Fu.closeArm();
+//                 shownColor = 0xFF; // 无显示，下一次点亮按当前颜色渲染
+//             }
+//         }
+//         /* 分支二：闪烁庆祝，闪三下后复位单片机（表示本回合结束） */
+//         else if(Fu.twinkleState == true){
+//             /* 闪烁庆祝：期间不支持换色（此分支内不解析新命令，颜色保持进入时的值） */
+//             uint8_t cnt = 0;
+//             /* 一轮 = 熄灭约 400ms + 点亮约 400ms（各另有 10ms 等待发送），共三轮 */
+//             while(cnt++ < 3){
+//                 Fu.closeCircle();
+//                 HAL_Delay(10);
+//                 Fu.closeFrame();
+//                 HAL_Delay(10);
+//                 Fu.closeStrip();
+//                 Fu.closeArm();
+//                 HAL_Delay(400);
+//                 if(fu_mode == 0){
+//                     Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+//                 } else if(fu_mode == 1){
+//                     Fu.color == blue ? Fu.lightenRing(9, 0, 0, 150) : Fu.lightenRing(9, 150, 0, 0);
+//                 }
+//                 WS::WS_Load_Circle();
+//                 HAL_Delay(10);
+//                 Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
+//                 HAL_Delay(10);
+//                 Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
+//                 /* 庆祝闪烁：灯臂跟着闪 */
+//                 Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
+//                 HAL_Delay(400);
+//             }
+//             /* 三轮闪完：先熄灯，再复位单片机，回到 startup 开头重新开始 */
+//             Fu.closeFrame();
+//             HAL_Delay(10);
+//             Fu.closeCircle();
+//             HAL_Delay(10);
+//             Fu.closeStrip();
+//             Fu.closeArm();
+//             // 关闭所有中断
+//             __set_FAULTMASK(1); 
+//             // 复位
+//             NVIC_SystemReset();
+//             HAL_Delay(200);
+//         }
 
-#ifndef __DE_BUG
-        /* 状态机执行完毕后记录序号：表示“这条命令本圈已被应用” */
-        lastSeq = rxSeq;
-#endif /* __DE_BUG */
+// #ifndef __DE_BUG
+//         /* 状态机执行完毕后记录序号：表示“这条命令本圈已被应用” */
+//         lastSeq = rxSeq;
+// #endif /* __DE_BUG */
 
-        /* 固定 20ms 一拍：既是应答帧周期，也决定状态机的响应速度 */
-        HAL_Delay(20);
+//         /* 固定 20ms 一拍：既是应答帧周期，也决定状态机的响应速度 */
+//         HAL_Delay(20);
     }
 }
