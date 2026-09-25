@@ -17,7 +17,7 @@
  */
 /* 每块板烧同一份程序，靠板号区分 CAN 收发 ID：
    0~4 号板分别对应 0x101~0x105（接收）和 0x301~0x305（发送）。换板号就是改这里 */
-#define BoardNum 2
+#define BoardNum 0
 #if BoardNum == 0
     #define CanID 0x101
     #define TxCanID 0x301
@@ -188,7 +188,7 @@ void startup(void){
                     Fu.closeCircle();
                     HAL_Delay(10);
                     Fu.closeFrame();
-                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+                    Fu.color == blue ? Fu.lightenRing(1, 0, 0, 150) : Fu.lightenRing(1, 150, 0, 0);
                     /* lightenRing 只改缓冲区，这里手动刷新一次 DMA 才会显示出来 */
                     WS::WS_Load_Circle();
                     HAL_Delay(10);
@@ -204,7 +204,7 @@ void startup(void){
                 }
                 else if(shownColor != curColor){
                     /* 命中环常亮中收到不同颜色的点亮命令：保持显示并换色 */
-                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+                    Fu.color == blue ? Fu.lightenRing(1, 0, 0, 150) : Fu.lightenRing(1, 150, 0, 0);
                     /* 同上，换色后要刷新 DMA */
                     WS::WS_Load_Circle();
                     HAL_Delay(10);
@@ -244,7 +244,7 @@ void startup(void){
                 Fu.closeArm();
                 HAL_Delay(400);
                 if(fu_mode == 0){
-                    Fu.color == blue ? Fu.lightenRing(Fu.hitRing, 0, 0, 150) : Fu.lightenRing(Fu.hitRing, 150, 0, 0);
+                    Fu.color == blue ? Fu.lightenRing(1, 0, 0, 150) : Fu.lightenRing(1, 150, 0, 0);
                 } else if(fu_mode == 1){
                     Fu.color == blue ? Fu.lightenRing(9, 0, 0, 150) : Fu.lightenRing(9, 150, 0, 0);
                 }
@@ -263,6 +263,7 @@ void startup(void){
             Fu.closeCircle();
             HAL_Delay(10);
             Fu.closeStrip();
+            HAL_Delay(10);
             Fu.closeArm();
             // 关闭所有中断
             __set_FAULTMASK(1); 

@@ -278,8 +278,13 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 
 /* 点亮灯带：把该灯带的灯珠序号区间写入缓冲区 */
 void Fu_t::lightenStrip(uint8_t red, uint8_t green, uint8_t blue){
+	uint8_t Rred = Fu.color == blue ? 0 : 150;
+	uint8_t Rblue = Fu.color == blue ? 150 : 0;
+	for(uint16_t n = 0; n < NumRIcon; n++){
+		WS::WS281x_SetPixelRGB(strip, n, Rred, 0, Rblue);
+	}
     for(uint16_t n = 0; n < 80; n++){
-		WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
+		WS::WS281x_SetPixelRGB(strip, n + NumRIcon, red, green, blue);
 	}
 	/* 灯带数据就绪，启动 DMA 输出 */
 	WS::WS_Load_Strip();

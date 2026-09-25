@@ -17,13 +17,22 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 
-#define WS1 68 // WS逻辑高
-#define WS0 18 // WS逻辑低
+#define WS1 61 // WS逻辑高
+#define WS0 20 // WS逻辑低
+
+
+#define NumRIcon 9   //R标对应灯珠数量
 
 #define NumCircle 24*275 + 224 // 靶环bit数
 #define NumUp 24*88 + 224 // 上边框bit数
 #define NumDown 24*92 + 224 // 下边框bit数
+
+#if BoardNum == 0
+#define NumStrip 24*80 + 24*NumRIcon + 224 // 条纹bit数 + R标对应灯珠数量
+#else
 #define NumStrip 24*80 + 224 // 条纹bit数
+#endif
+
 #define NumArm 24*256 + 224 // 灯臂bit数
 
 enum Color{
