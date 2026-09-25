@@ -278,14 +278,20 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 
 /* 点亮灯带：把该灯带的灯珠序号区间写入缓冲区 */
 void Fu_t::lightenStrip(uint8_t red, uint8_t green, uint8_t blue){
-	uint8_t Rred = Fu.color == blue ? 0 : 150;
-	uint8_t Rblue = Fu.color == blue ? 150 : 0;
-	for(uint16_t n = 0; n < NumRIcon; n++){
+	#if BoardNum == 4
+	uint8_t Rred = Fu.color == blue ? 255 : 0;
+	uint8_t Rblue = Fu.color == blue ? 0 : 255;
+	for(uint16_t n = NumRIcon; n < 48 + NumRIcon; n++){
 		WS::WS281x_SetPixelRGB(strip, n, Rred, 0, Rblue);
 	}
-    for(uint16_t n = 0; n < 80; n++){
-		WS::WS281x_SetPixelRGB(strip, n + NumRIcon, red, green, blue);
+    for(uint16_t n = 0; n < 48; n++){
+		WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
 	}
+	#else
+    for(uint16_t n = 0; n < 80; n++){
+		WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
+	}
+	#endif
 	/* 灯带数据就绪，启动 DMA 输出 */
 	WS::WS_Load_Strip();
 }
@@ -395,15 +401,16 @@ void Fu_t::closeFrame(){
 }
 
 void Fu_t::closeStrip(){
-	/* 灯带：80 颗灯珠的数据位全部写逻辑 0 */
-	for (uint16_t i = 0; i < 80 * 24; i++)
-		WS::Buf_strip[i] = WS0; // 写入逻辑0的占空比
-	/* 灯带剩余 224 项为复位段 */
-	for (uint16_t i = 80 * 24; i < NumStrip; i++)
-		WS::Buf_strip[i] = 0; // 占空比为0，全为低电平
+	// /* 灯带：80 颗灯珠的数据位全部写逻辑 0 */
+	// for (uint16_t i = 0; i < 80 * 24; i++)
+	// 	WS::Buf_strip[i] = WS0; // 写入逻辑0的占空比
+	// /* 灯带剩余 224 项为复位段 */
+	// for (uint16_t i = 80 * 24; i < NumStrip; i++)
+	// 	WS::Buf_strip[i] = 0; // 占空比为0，全为低电平
 	
-	/* 灯带熄灭结果下发 */
-	WS::WS_Load_Strip();
+	// /* 灯带熄灭结果下发 */
+	// WS::WS_Load_Strip();
+	Fu_t::lightenStrip(0, 0, 0);
 }
 
 /* 每行亮起的起始列，和箭头的 24 个坐标一一对应 */
