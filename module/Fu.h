@@ -7,7 +7,7 @@ extern "C" {
 
 
 #include "start.h"
-
+#include "boardSel.h"
 
 /**
  * @brief HAL 定时器句柄（在 C 区域声明以便 HAL 回调可见）
