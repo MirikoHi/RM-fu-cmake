@@ -161,7 +161,7 @@ void startup(void){
                     Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
                     HAL_Delay(10);
                     /* 灯板准备被击打：灯臂亮箭头流水 */
-                    Fu.color == blue ? Fu.startArmFlow(0, 0, 255) : Fu.startArmFlow(255, 0, 0);
+                    Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     // HAL_Delay(10);
                     /* 记录已点亮，并记住这次渲染用的颜色 */
@@ -173,7 +173,7 @@ void startup(void){
                     Fu.color == blue ? Fu.lightenCross(0, 0, 150) : Fu.lightenCross(150, 0, 0);
                     HAL_Delay(10);
                     /* 灯板准备被击打：灯臂箭头流水按新颜色重绘 */
-                    Fu.color == blue ? Fu.startArmFlow(0, 0, 255) : Fu.startArmFlow(255, 0, 0);
+                    Fu.color == blue ? Fu.startArmFlow(0, 0, 150) : Fu.startArmFlow(150, 0, 0);
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     // HAL_Delay(10);
                     shownColor = curColor;
@@ -196,7 +196,7 @@ void startup(void){
                     HAL_Delay(10);
                     Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
                     /* 击打完成：灯臂整块点亮 */
-                    Fu.color == blue ? Fu.lightenArm(0, 0, 255) : Fu.lightenArm(255, 0, 0);
+                    Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
                     Fu.stayState = true;
                     shownColor = curColor;
                 }
@@ -208,7 +208,7 @@ void startup(void){
                     HAL_Delay(10);
                     Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
                     /* 击打完成：灯臂整块点亮（换色重绘） */
-                    Fu.color == blue ? Fu.lightenArm(0, 0, 255) : Fu.lightenArm(255, 0, 0);
+                    Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
                     HAL_Delay(10);
                     // Fu.color == blue ? Fu.lightenFrame(0, 0, 150) : Fu.lightenFrame(150, 0, 0);
                     shownColor = curColor;
@@ -252,7 +252,7 @@ void startup(void){
                 HAL_Delay(10);
                 Fu.color == blue ? Fu.lightenStrip(0, 0, 150) : Fu.lightenStrip(150, 0, 0);
                 /* 庆祝闪烁：灯臂跟着闪 */
-                Fu.color == blue ? Fu.lightenArm(0, 0, 255) : Fu.lightenArm(255, 0, 0);
+                Fu.color == blue ? Fu.lightenArm(0, 0, 150) : Fu.lightenArm(150, 0, 0);
                 HAL_Delay(400);
             }
             /* 三轮闪完：先熄灯，再复位单片机，回到 startup 开头重新开始 */
