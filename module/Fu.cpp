@@ -31,7 +31,7 @@ int16_t WS::Buf_arm[NumArm] = {0};
 #define ARM_ARROW_W      3                              /* 箭头每行亮起的格子数 */
 #define ARM_ARROW_GAP    2                              /* 同一行相邻箭头之间的空格数 */
 #define ARM_FLOW_PERIOD  (ARM_ARROW_W + ARM_ARROW_GAP)  /* 5：沿列方向的重复周期 */
-#define ARM_FLOW_STEP_MS 500                            /* 每 0.5s 向左走一格 */
+#define ARM_FLOW_STEP_MS 100                            /* 每 0.5s 向左走一格 */
 
 /* 把 R/G/B 三个分量按 WS2812 的 GRB 顺序打包成一个 24 bit 数值 */
 uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
@@ -278,7 +278,7 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 
 /* 点亮灯带：把该灯带的灯珠序号区间写入缓冲区 */
 void Fu_t::lightenStrip(uint8_t red, uint8_t green, uint8_t blue){
-	#if BoardNum == 4
+	#if BoardNum == 0
 	uint8_t Rred = Fu.color == blue ? 255 : 0;
 	uint8_t Rblue = Fu.color == blue ? 0 : 255;
 	for(uint16_t n = NumRIcon; n < 48 + NumRIcon; n++){
@@ -414,7 +414,7 @@ void Fu_t::closeStrip(){
 }
 
 /* 每行亮起的起始列，和箭头的 24 个坐标一一对应 */
-static const uint8_t ARM_ARROW_START[ARM_ROWS] = {3, 2, 1, 0, 0, 1, 2, 3};
+static const uint8_t ARM_ARROW_START[ARM_ROWS] = {0, 1, 2, 3, 3, 2, 1, 0};
 
 /* 灯臂整条写逻辑 0：只写缓冲，不启动 DMA */
 static void Arm_ClearBuffer(){
@@ -491,6 +491,8 @@ void Fu_t::armFlowTick(void){
 	if ((uint32_t)(now - armLastTick) < ARM_FLOW_STEP_MS) return;
 
 	armLastTick += ARM_FLOW_STEP_MS;
-	armPhase = (uint8_t)((armPhase + ARM_FLOW_PERIOD - 1) % ARM_FLOW_PERIOD);
+	//armPhase = (uint8_t)((armPhase + ARM_FLOW_PERIOD - 1) % ARM_FLOW_PERIOD);
+	armPhase++;
+	if(armPhase >= ARM_FLOW_PERIOD) armPhase = 0;
 	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
 }
