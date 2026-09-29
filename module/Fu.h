@@ -196,9 +196,24 @@ public:
     void lightenStrip(uint8_t red, uint8_t green, uint8_t blue);
 
     /**
+     * @brief 只刷新常亮的 R 标颜色，灯带其余部分不动
+     */
+    void lightenRIcon(void);
+
+    /**
      * @brief 点亮特定灯带
      */
     void lighten_Special_Strip(uint8_t start_num, uint8_t end_num, uint8_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief 大能量机关亮灯步骤函数整合
+     */
+    void lighten_step(uint8_t start_num, uint8_t end_num, uint8_t step, uint8_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief 大能量机关亮灯步骤
+     */
+    void lighten_steps(uint8_t step, uint8_t red, uint8_t green, uint8_t blue);
 
     /**
      * @brief 熄灭所有靶环
@@ -230,6 +245,12 @@ public:
      * @brief 灯臂：256 颗整块点亮（击打完成）
      */
     void lightenArm(uint8_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief 灯臂：一次点亮第 0 列至第 x 列（列号从 0 开始，含两端），其余列保持熄灭
+     * @param x 目标末列列号，0 表示只亮第 0 列
+     */
+    void lighten_special_arm(uint8_t x, uint8_t red, uint8_t green, uint8_t blue);
 
     /**
      * @brief 灯臂：整块熄灭（主控未允许击打）

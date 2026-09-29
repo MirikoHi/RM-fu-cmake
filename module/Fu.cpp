@@ -276,14 +276,9 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 	// WS::WS_Load_Circle();
 }
 
-/* 点亮灯带：把该灯带的灯珠序号区间写入缓冲区 */
+/* 点亮灯带：把该灯带的灯珠序号区间写入缓冲区（R 标由 lightenRIcon() 单独负责） */
 void Fu_t::lightenStrip(uint8_t red, uint8_t green, uint8_t blue){
 	#if BoardNum == 0
-	uint8_t Rred = Fu.color == blue ? 255 : 0;
-	uint8_t Rblue = Fu.color == blue ? 0 : 255;
-	for(uint16_t n = NumRIcon; n < 48 + NumRIcon; n++){
-		WS::WS281x_SetPixelRGB(strip, n, Rred, 0, Rblue);
-	}
     for(uint16_t n = 0; n < 48; n++){
 		WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
 	}
@@ -296,6 +291,19 @@ void Fu_t::lightenStrip(uint8_t red, uint8_t green, uint8_t blue){
 	WS::WS_Load_Strip();
 }
 
+/* 只刷新常亮的 R 标（颜色跟随当前命令颜色），灯带其余部分不动 */
+void Fu_t::lightenRIcon(void){
+	#if BoardNum == 0
+	uint8_t Rred = Fu.color == blue ? 0 : 255;
+	uint8_t Rblue = Fu.color == blue ? 255 : 0;
+	for(uint16_t n = NumRIcon; n < 48 + NumRIcon; n++){
+		WS::WS281x_SetPixelRGB(strip, n, Rred, 0, Rblue);
+	}
+	/* R 标数据就绪，启动 DMA 输出 */
+	WS::WS_Load_Strip();
+	#endif
+}
+
 /* 点亮特定灯带：把该灯带的灯珠序号区间写入缓冲区，灯带编号从零开始 */
 void Fu_t::lighten_Special_Strip(uint8_t start_num, uint8_t end_num, uint8_t red, uint8_t green, uint8_t blue){
 	for(uint16_t n = start_num; n <= end_num; n++){
@@ -303,6 +311,197 @@ void Fu_t::lighten_Special_Strip(uint8_t start_num, uint8_t end_num, uint8_t red
 	}
 	/* 灯带数据就绪，启动 DMA 输出 */
 	WS::WS_Load_Strip();
+}
+
+/* 每行亮起的起始列，和箭头的 24 个坐标一一对应 */
+static const uint8_t ARM_ARROW_START[ARM_ROWS] = {0, 1, 2, 3, 3, 2, 1, 0};
+
+/* 灯臂整条写逻辑 0：只写缓冲，不启动 DMA */
+static void Arm_ClearBuffer(){
+	for (uint16_t i = 0; i < ARM_LED_NUM * 24; i++)
+		WS::Buf_arm[i] = WS0;   /* 数据位全部写逻辑 0 的占空比 */
+	for (uint16_t i = ARM_LED_NUM * 24; i < NumArm; i++)
+		WS::Buf_arm[i] = 0;     /* 复位段占空比为 0，全为低电平 */
+}
+
+/* 画一帧箭头流水：phase 为参考箭头尖端所在的列（0 ~ ARM_FLOW_PERIOD-1） */
+static void Arm_DrawArrowFrame(uint8_t phase, uint8_t red, uint8_t green, uint8_t blue){
+	int16_t pos, x;
+	uint8_t y, d;
+
+	Arm_ClearBuffer();
+
+	/* 相位只取 0~4，向左向右各铺若干份周期副本，覆盖整块灯臂 */
+	for (pos = (int16_t)phase - ARM_FLOW_PERIOD; pos < ARM_COLS; pos += ARM_FLOW_PERIOD)
+	{
+		for (y = 0; y < ARM_ROWS; y++)
+		{
+			for (d = 0; d < ARM_ARROW_W; d++)
+			{
+				x = pos + ARM_ARROW_START[y] + d;
+				if (x < 0 || x >= ARM_COLS) continue;  /* 左边超出范围的部分不要，右边板外也一样 */
+				WS::WS281x_SetPixelRGB(arm, XY_To_Index((uint8_t)x, y), red, green, blue);
+			}
+		}
+	}
+
+	WS::WS_Load_Arm();
+}
+
+/* 灯臂：开始箭头流水（灯板准备被击打），已在跑时只更新颜色 */
+void Fu_t::startArmFlow(uint8_t red, uint8_t green, uint8_t blue){
+	armRed = red;
+	armGreen = green;
+	armBlue = blue;
+
+	if (armFlowOn == false)
+	{
+		armFlowOn = true;
+		armPhase = 0;
+		armLastTick = HAL_GetTick();
+	}
+
+	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
+}
+
+/* 灯臂：256 颗整块点亮（击打完成） */
+void Fu_t::lightenArm(uint8_t red, uint8_t green, uint8_t blue){
+	armFlowOn = false;  /* 整块亮时不再推进流水 */
+
+	for (uint16_t n = 0; n < ARM_LED_NUM; n++)
+		WS::WS281x_SetPixelRGB(arm, n, red, green, blue);
+
+	WS::WS_Load_Arm();
+}
+
+/* 灯臂：整块熄灭（主控未允许击打） */
+void Fu_t::closeArm(void){
+	armFlowOn = false;
+	Arm_ClearBuffer();
+	WS::WS_Load_Arm();
+}
+
+/* 灯臂：主循环每拍调用一次，满 500ms 向左推进一格并重画 */
+void Fu_t::armFlowTick(void){
+	uint32_t now;
+
+	if (armFlowOn == false) return;
+
+	now = HAL_GetTick();
+	if ((uint32_t)(now - armLastTick) < ARM_FLOW_STEP_MS) return;
+
+	armLastTick += ARM_FLOW_STEP_MS;
+	//armPhase = (uint8_t)((armPhase + ARM_FLOW_PERIOD - 1) % ARM_FLOW_PERIOD);
+	armPhase++;
+	if(armPhase >= ARM_FLOW_PERIOD) armPhase = 0;
+	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
+}
+
+/* 灯臂：一次点亮第 0 列至第 x 列（列号从 0 开始，含两端），其余列保持熄灭 */
+void Fu_t::lighten_special_arm(uint8_t x, uint8_t red, uint8_t green, uint8_t blue){
+	uint8_t col, y;
+	if (x >= ARM_COLS) x = ARM_COLS - 1;
+	Arm_ClearBuffer();
+	for (col = 0; col <= x; col++)
+		for (y = 0; y < ARM_ROWS; y++)
+			WS::WS281x_SetPixelRGB(arm, XY_To_Index(col, y), red, green, blue);
+
+	WS::WS_Load_Arm();
+}
+
+/* 灯臂用的暗一档颜色：减 50 并夹到 0，避免 uint8_t 回绕 */
+static uint8_t Arm_DimColor(uint8_t c){
+	return (c > 50) ? (uint8_t)(c - 50) : 0;
+}
+
+void Fu_t::lighten_step(uint8_t start_num, uint8_t end_num, uint8_t step, uint8_t red, uint8_t green, uint8_t blue){
+	lighten_Special_Strip(start_num, end_num, red, green, blue);
+	HAL_Delay(15);
+	lighten_special_arm(step, Arm_DimColor(red), Arm_DimColor(green), Arm_DimColor(blue));
+	HAL_Delay(15);
+}
+
+void Fu_t::lighten_steps(uint8_t step, uint8_t red, uint8_t green, uint8_t blue){
+    /* 先清零灯带和灯臂：进度可加可减，step=0 即全灭 */
+    closeStrip();
+    closeArm();
+
+    /* 按步骤点亮灯带 */
+    switch(step)
+	{
+	case 0:
+		/* 熄灭all：上面已清零 */
+		break;
+	case 1:
+		/* 点亮1/5, 到灯带上1/4处 */
+		#if BoardNum == 0
+		lighten_step(15, 31, 5, red, green, blue);
+		#endif
+		#if BoardNum == 1
+		lighten_step(15, 31, 5, red, green, blue);
+		#endif
+		#if BoardNum == 2
+		lighten_step(16, 32, 6, red, green, blue);
+		#endif
+		#if BoardNum == 3
+		lighten_step(16, 33, 5, red, green, blue);
+		#endif
+		#if BoardNum == 4
+		lighten_step(14, 31, 7, red, green, blue);
+		#endif
+		break;
+	case 2:
+		/* 点亮2/5, 到灯带上2/4处 */
+		#if BoardNum == 0
+		lighten_step(10, 36, 14, red, green, blue);
+		#endif
+		#if BoardNum == 1
+		lighten_step(12, 38, 15, red, green, blue);
+		#endif
+		#if BoardNum == 2
+		lighten_step(12, 39, 15, red, green, blue);
+		#endif
+		#if BoardNum == 3
+		lighten_step(8, 36, 15, red, green, blue);
+		#endif
+		break;
+	case 3:
+		/* 点亮3/5, 到灯带上3/4处 */
+		#if BoardNum == 0
+		lighten_step(5, 41, 25, red, green, blue);
+		#endif
+		#if BoardNum == 1
+		lighten_step(7, 42, 26, red, green, blue);
+		#endif
+		#if BoardNum == 2
+		lighten_step(7, 42, 26, red, green, blue);
+		#endif
+		#if BoardNum == 3
+		lighten_step(5, 43, 27, red, green, blue);
+		#endif
+		#if BoardNum == 4
+		lighten_step(4, 40, 26, red, green, blue);
+		#endif
+		break;
+	case 4:
+		/* 点亮4/5, 灯带全部 */
+		#if BoardNum == 0
+		lighten_step(0, 47, 31, red, green, blue);
+		#endif
+		#if BoardNum == 1
+		lighten_step(0, 49, 31, red, green, blue);
+		#endif
+		#if BoardNum == 2
+		lighten_step(0, 46, 31, red, green, blue);
+		#endif
+		#if BoardNum == 3
+		lighten_step(0, 49, 31, red, green, blue);
+		#endif
+		#if BoardNum == 4
+		lighten_step(0, 46, 31, red, green, blue);
+		#endif
+		break;
+	}
 }
 
 /* 读取九个环的击中检测引脚（低电平表示被击中），按由外到内的顺序返回环号并更新 hitState */
@@ -411,88 +610,4 @@ void Fu_t::closeStrip(){
 	// /* 灯带熄灭结果下发 */
 	// WS::WS_Load_Strip();
 	Fu_t::lightenStrip(0, 0, 0);
-}
-
-/* 每行亮起的起始列，和箭头的 24 个坐标一一对应 */
-static const uint8_t ARM_ARROW_START[ARM_ROWS] = {0, 1, 2, 3, 3, 2, 1, 0};
-
-/* 灯臂整条写逻辑 0：只写缓冲，不启动 DMA */
-static void Arm_ClearBuffer(){
-	for (uint16_t i = 0; i < ARM_LED_NUM * 24; i++)
-		WS::Buf_arm[i] = WS0;   /* 数据位全部写逻辑 0 的占空比 */
-	for (uint16_t i = ARM_LED_NUM * 24; i < NumArm; i++)
-		WS::Buf_arm[i] = 0;     /* 复位段占空比为 0，全为低电平 */
-}
-
-/* 画一帧箭头流水：phase 为参考箭头尖端所在的列（0 ~ ARM_FLOW_PERIOD-1） */
-static void Arm_DrawArrowFrame(uint8_t phase, uint8_t red, uint8_t green, uint8_t blue){
-	int16_t pos, x;
-	uint8_t y, d;
-
-	Arm_ClearBuffer();
-
-	/* 相位只取 0~4，向左向右各铺若干份周期副本，覆盖整块灯臂 */
-	for (pos = (int16_t)phase - ARM_FLOW_PERIOD; pos < ARM_COLS; pos += ARM_FLOW_PERIOD)
-	{
-		for (y = 0; y < ARM_ROWS; y++)
-		{
-			for (d = 0; d < ARM_ARROW_W; d++)
-			{
-				x = pos + ARM_ARROW_START[y] + d;
-				if (x < 0 || x >= ARM_COLS) continue;  /* 左边超出范围的部分不要，右边板外也一样 */
-				WS::WS281x_SetPixelRGB(arm, XY_To_Index((uint8_t)x, y), red, green, blue);
-			}
-		}
-	}
-
-	WS::WS_Load_Arm();
-}
-
-/* 灯臂：开始箭头流水（灯板准备被击打），已在跑时只更新颜色 */
-void Fu_t::startArmFlow(uint8_t red, uint8_t green, uint8_t blue){
-	armRed = red;
-	armGreen = green;
-	armBlue = blue;
-
-	if (armFlowOn == false)
-	{
-		armFlowOn = true;
-		armPhase = 0;
-		armLastTick = HAL_GetTick();
-	}
-
-	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
-}
-
-/* 灯臂：256 颗整块点亮（击打完成） */
-void Fu_t::lightenArm(uint8_t red, uint8_t green, uint8_t blue){
-	armFlowOn = false;  /* 整块亮时不再推进流水 */
-
-	for (uint16_t n = 0; n < ARM_LED_NUM; n++)
-		WS::WS281x_SetPixelRGB(arm, n, red, green, blue);
-
-	WS::WS_Load_Arm();
-}
-
-/* 灯臂：整块熄灭（主控未允许击打） */
-void Fu_t::closeArm(void){
-	armFlowOn = false;
-	Arm_ClearBuffer();
-	WS::WS_Load_Arm();
-}
-
-/* 灯臂：主循环每拍调用一次，满 500ms 向左推进一格并重画 */
-void Fu_t::armFlowTick(void){
-	uint32_t now;
-
-	if (armFlowOn == false) return;
-
-	now = HAL_GetTick();
-	if ((uint32_t)(now - armLastTick) < ARM_FLOW_STEP_MS) return;
-
-	armLastTick += ARM_FLOW_STEP_MS;
-	//armPhase = (uint8_t)((armPhase + ARM_FLOW_PERIOD - 1) % ARM_FLOW_PERIOD);
-	armPhase++;
-	if(armPhase >= ARM_FLOW_PERIOD) armPhase = 0;
-	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
 }
