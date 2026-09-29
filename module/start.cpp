@@ -201,9 +201,7 @@ void startup(void){
                     Fu.closeCircle();
                     HAL_Delay(10);
                     Fu.closeFrame();
-                    Fu.color == blue ? Fu.lightenRing(1, 0, 0, either_light) : Fu.lightenRing(1, either_light, 0, 0);
-                    /* lightenRing 只改缓冲区，这里手动刷新一次 DMA 才会显示出来 */
-                    WS::WS_Load_Circle();
+                    Fu.color == blue ? Fu.lightenRingSync(1, 0, 0, either_light) : Fu.lightenRingSync(1, either_light, 0, 0);
                     HAL_Delay(10);
                     /* 记录进入常亮状态以及当前颜色 */
                     Fu.closeFrame();
@@ -216,9 +214,7 @@ void startup(void){
                 }
                 else if(shownColor != curColor){
                     /* 命中环常亮中收到不同颜色的点亮命令：保持显示并换色 */
-                    Fu.color == blue ? Fu.lightenRing(1, 0, 0, either_light) : Fu.lightenRing(1, either_light, 0, 0);
-                    /* 同上，换色后要刷新 DMA */
-                    WS::WS_Load_Circle();
+                    Fu.color == blue ? Fu.lightenRingSync(1, 0, 0, either_light) : Fu.lightenRingSync(1, either_light, 0, 0);
                     HAL_Delay(10);
                     Fu.color == blue ? Fu.lightenStrip(0, 0, either_light) : Fu.lightenStrip(either_light, 0, 0);
                     /* 击打完成：灯臂整块点亮（换色重绘） */
@@ -315,11 +311,10 @@ void startup(void){
                 Fu.closeArm();
                 HAL_Delay(400);
                 if(fu_mode == 0){
-                    Fu.color == blue ? Fu.lightenRing(1, 0, 0, either_light) : Fu.lightenRing(1, either_light, 0, 0);
+                    Fu.color == blue ? Fu.lightenRingSync(1, 0, 0, either_light) : Fu.lightenRingSync(1, either_light, 0, 0);
                 } else if(fu_mode == 1){
-                    Fu.color == blue ? Fu.lightenRing(1, 0, 0, either_light) : Fu.lightenRing(1, either_light, 0, 0);
+                    Fu.color == blue ? Fu.lightenRingSync(1, 0, 0, either_light) : Fu.lightenRingSync(1, either_light, 0, 0);
                 }
-                WS::WS_Load_Circle();
                 HAL_Delay(10);
                 Fu.color == blue ? Fu.lightenFrame(0, 0, either_light) : Fu.lightenFrame(either_light, 0, 0);
                 HAL_Delay(10);

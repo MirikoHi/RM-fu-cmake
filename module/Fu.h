@@ -185,6 +185,8 @@ public:
      */
     void lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue);
 
+    void lightenRingSync(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue);
+
     /**
      * @brief 点亮靶框
      */

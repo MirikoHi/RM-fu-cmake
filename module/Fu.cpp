@@ -132,6 +132,12 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim) { }
 /* 点亮十字图案：括号中的数字是灯珠在灯带上的序号，四个方向各 8 颗，
  * 并同时点亮十字经过的二环、六环、九环 */
 void Fu_t::lightenCross(uint8_t red, uint8_t green, uint8_t blue){
+	for(uint8_t i = 0; i < NumCircle; i++){
+		WS::Buf_Circle[i] = 0;
+	}
+	for(uint8_t i = 0; i < 24*275; i++){
+		WS::Buf_Circle[i] = WS0;
+	}
     // 右十字
 	WS::WS281x_SetPixelRGB(circle, 0,red, green, blue);
 	WS::WS281x_SetPixelRGB(circle, 48,red, green, blue);
@@ -276,6 +282,16 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 	// WS::WS_Load_Circle();
 }
 
+void Fu_t::lightenRingSync(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue){
+	for(uint8_t i = 0; i < NumCircle; i++){
+		WS::Buf_Circle[i] = 0;
+	}
+	for(uint8_t i = 0; i < 24*275; i++){
+		WS::Buf_Circle[i] = WS0;
+	}
+	lightenRing(ringNum, red, green, blue);
+	WS::WS_Load_Circle();
+}
 /* 点亮灯带：把该灯带的灯珠序号区间写入缓冲区（R 标由 lightenRIcon() 单独负责） */
 void Fu_t::lightenStrip(uint8_t red, uint8_t green, uint8_t blue){
 	#if BoardNum == 0
