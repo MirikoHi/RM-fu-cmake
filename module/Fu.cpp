@@ -296,7 +296,7 @@ void Fu_t::lightenRIcon(void){
 	#if BoardNum == 0
 	uint8_t Rred = Fu.color == blue ? 0 : 255;
 	uint8_t Rblue = Fu.color == blue ? 255 : 0;
-	for(uint16_t n = NumRIcon; n < 48 + NumRIcon; n++){
+	for(uint16_t n = 48; n < 48 + NumRIcon; n++){
 		WS::WS281x_SetPixelRGB(strip, n, Rred, 0, Rblue);
 	}
 	/* R 标数据就绪，启动 DMA 输出 */
@@ -306,8 +306,12 @@ void Fu_t::lightenRIcon(void){
 
 /* 点亮特定灯带：把该灯带的灯珠序号区间写入缓冲区，灯带编号从零开始 */
 void Fu_t::lighten_Special_Strip(uint8_t start_num, uint8_t end_num, uint8_t red, uint8_t green, uint8_t blue){
-	for(uint16_t n = start_num; n <= end_num; n++){
-		WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
+	for(uint16_t n = 0; n <= end_num; n++){
+		if(n < start_num){
+			WS::WS281x_SetPixelRGB(strip, n, 0, 0, 0);
+		}else{
+			WS::WS281x_SetPixelRGB(strip, n, red, green, blue);
+		}
 	}
 	/* 灯带数据就绪，启动 DMA 输出 */
 	WS::WS_Load_Strip();
@@ -318,10 +322,10 @@ static const uint8_t ARM_ARROW_START[ARM_ROWS] = {0, 1, 2, 3, 3, 2, 1, 0};
 
 /* 灯臂整条写逻辑 0：只写缓冲，不启动 DMA */
 static void Arm_ClearBuffer(){
+	for (uint16_t i = 0; i < NumArm; i++)
+		WS::Buf_arm[i] = 0;     /* 复位段占空比为 0，全为低电平 */
 	for (uint16_t i = 0; i < ARM_LED_NUM * 24; i++)
 		WS::Buf_arm[i] = WS0;   /* 数据位全部写逻辑 0 的占空比 */
-	for (uint16_t i = ARM_LED_NUM * 24; i < NumArm; i++)
-		WS::Buf_arm[i] = 0;     /* 复位段占空比为 0，全为低电平 */
 }
 
 /* 画一帧箭头流水：phase 为参考箭头尖端所在的列（0 ~ ARM_FLOW_PERIOD-1） */
@@ -415,6 +419,7 @@ static uint8_t Arm_DimColor(uint8_t c){
 }
 
 void Fu_t::lighten_step(uint8_t start_num, uint8_t end_num, uint8_t step, uint8_t red, uint8_t green, uint8_t blue){
+	// HAL_Delay(15);
 	lighten_Special_Strip(start_num, end_num, red, green, blue);
 	HAL_Delay(15);
 	lighten_special_arm(step, Arm_DimColor(red), Arm_DimColor(green), Arm_DimColor(blue));
@@ -423,8 +428,8 @@ void Fu_t::lighten_step(uint8_t start_num, uint8_t end_num, uint8_t step, uint8_
 
 void Fu_t::lighten_steps(uint8_t step, uint8_t red, uint8_t green, uint8_t blue){
     /* 先清零灯带和灯臂：进度可加可减，step=0 即全灭 */
-    closeStrip();
-    closeArm();
+    //closeStrip();
+    //closeArm();
 
     /* 按步骤点亮灯带 */
     switch(step)
@@ -456,13 +461,16 @@ void Fu_t::lighten_steps(uint8_t step, uint8_t red, uint8_t green, uint8_t blue)
 		lighten_step(10, 36, 14, red, green, blue);
 		#endif
 		#if BoardNum == 1
-		lighten_step(12, 38, 15, red, green, blue);
+		lighten_step(10, 36, 15, red, green, blue);
 		#endif
 		#if BoardNum == 2
 		lighten_step(12, 39, 15, red, green, blue);
 		#endif
 		#if BoardNum == 3
-		lighten_step(8, 36, 15, red, green, blue);
+		lighten_step(10, 39, 15, red, green, blue);
+		#endif
+		#if BoardNum == 4
+		lighten_step(10, 36, 15, red, green, blue);
 		#endif
 		break;
 	case 3:
@@ -471,13 +479,13 @@ void Fu_t::lighten_steps(uint8_t step, uint8_t red, uint8_t green, uint8_t blue)
 		lighten_step(5, 41, 25, red, green, blue);
 		#endif
 		#if BoardNum == 1
-		lighten_step(7, 42, 26, red, green, blue);
+		lighten_step(5, 41, 26, red, green, blue);
 		#endif
 		#if BoardNum == 2
 		lighten_step(7, 42, 26, red, green, blue);
 		#endif
 		#if BoardNum == 3
-		lighten_step(5, 43, 27, red, green, blue);
+		lighten_step(5, 44, 27, red, green, blue);
 		#endif
 		#if BoardNum == 4
 		lighten_step(4, 40, 26, red, green, blue);
@@ -492,7 +500,7 @@ void Fu_t::lighten_steps(uint8_t step, uint8_t red, uint8_t green, uint8_t blue)
 		lighten_step(0, 49, 31, red, green, blue);
 		#endif
 		#if BoardNum == 2
-		lighten_step(0, 46, 31, red, green, blue);
+		lighten_step(0, 46, 39, red, green, blue);
 		#endif
 		#if BoardNum == 3
 		lighten_step(0, 49, 31, red, green, blue);
@@ -565,12 +573,13 @@ uint8_t Fu_t::gotHitRing(){
 
 /* 熄灭靶环：所有灯珠数据位写逻辑 0，其余复位段保持低电平，最后刷新 DMA */
 void Fu_t::closeCircle(){
+	/* 其余 224 项为复位段，占空比置 0 以保持低电平 */
+	for (uint16_t i = 0; i < NumCircle; i++)
+		WS::Buf_Circle[i] = 0; // 占空比为0，全为低电平
 	/* 前 275*24 项为 275 颗灯珠的数据位，全部写逻辑 0 占空比即为熄灭 */
 	for (uint16_t i = 0; i < 275 * 24; i++)
 		WS::Buf_Circle[i] = WS0; // 写入逻辑0的占空比
-	/* 其余 224 项为复位段，占空比置 0 以保持低电平 */
-	for (uint16_t i = 275 * 24; i < NumCircle; i++)
-		WS::Buf_Circle[i] = 0; // 占空比为0，全为低电平
+
 	
 	/* 刷新 DMA，把熄灭后的缓冲区下发给灯带 */
 	WS::WS_Load_Circle();
@@ -578,22 +587,24 @@ void Fu_t::closeCircle(){
 
 /* 熄灭靶框：上、下靶框的数据位写逻辑 0，补足复位段后分别刷新 DMA */
 void Fu_t::closeFrame(){
+	/* 上靶框剩余 224 项为复位段 */
+	for (uint16_t i = 0; i < NumUp; i++)
+		WS::Buf_frame_up[i] = 0; // 占空比为0，全为低电平
 	/* 上靶框：88 颗灯珠的数据位全部写逻辑 0 */
 	for (uint16_t i = 0; i < 88 * 24; i++)
 		WS::Buf_frame_up[i] = WS0; // 写入逻辑0的占空比
-	/* 上靶框剩余 224 项为复位段 */
-	for (uint16_t i = 88 * 24; i < NumUp; i++)
-		WS::Buf_frame_up[i] = 0; // 占空比为0，全为低电平
+
 	
 	/* 上靶框熄灭结果下发 */
 	WS::WS_Load_Frame_up();
 
+	/* 下靶框剩余 224 项为复位段 */
+	for (uint16_t i = 0; i < NumDown; i++)
+		WS::Buf_frame_down[i] = 0; // 占空比为0，全为低电平
 	/* 下靶框：92 颗灯珠的数据位全部写逻辑 0 */
 	for (uint16_t i = 0; i < 92 * 24; i++)
 		WS::Buf_frame_down[i] = WS0; // 写入逻辑0的占空比
-	/* 下靶框剩余 224 项为复位段 */
-	for (uint16_t i = 92 * 24; i < NumDown; i++)
-		WS::Buf_frame_down[i] = 0; // 占空比为0，全为低电平
+
 	
 	/* 下靶框熄灭结果下发 */
 	WS::WS_Load_Frame_down();
