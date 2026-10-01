@@ -32,6 +32,7 @@ int16_t WS::Buf_arm[NumArm] = {0};
 #define ARM_ARROW_GAP    2                              /* 同一行相邻箭头之间的空格数 */
 #define ARM_FLOW_PERIOD  (ARM_ARROW_W + ARM_ARROW_GAP)  /* 5：沿列方向的重复周期 */
 #define ARM_FLOW_STEP_MS 100                            /* 每 0.5s 向左走一格 */
+#define CROSS_REFRESH_MS 50                             /* 十字每 50ms 重发一帧 */
 
 /* 把 R/G/B 三个分量按 WS2812 的 GRB 顺序打包成一个 24 bit 数值 */
 uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
@@ -183,6 +184,16 @@ void Fu_t::lightenCross(uint8_t red, uint8_t green, uint8_t blue){
 	lightenRing(6, red, green, blue);
 	lightenRing(9, red, green, blue);
 
+	/* 记录颜色并开启常亮刷新，主循环靠它重发同一帧 */
+	crossRed = red;
+	crossGreen = green;
+	crossBlue = blue;
+	if (crossOn == false)
+	{
+		crossOn = true;
+		crossLastTick = HAL_GetTick();
+	}
+
 	/* 像素全部写完后统一刷新一次 DMA，避免同一帧内多次启动传输 */
     WS::WS_Load_Circle();
 }
@@ -283,6 +294,7 @@ void Fu_t::lightenRing(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue
 }
 
 void Fu_t::lightenRingSync(uint8_t ringNum, uint8_t red, uint8_t green, uint8_t blue){
+	crossOn = false;
 	for(uint16_t i = 0; i < NumCircle; i++){
 		WS::Buf_Circle[i] = 0;
 	}
@@ -417,6 +429,16 @@ void Fu_t::armFlowTick(void){
 	Arm_DrawArrowFrame(armPhase, armRed, armGreen, armBlue);
 }
 
+/* 十字：主循环每拍调用一次，满 50ms 重发一次当前画面 */
+void Fu_t::crossRefreshTick(void){
+	if (crossOn == false) return;
+
+	if ((uint32_t)(HAL_GetTick() - crossLastTick) < CROSS_REFRESH_MS) return;
+
+	crossLastTick += CROSS_REFRESH_MS;
+	lightenCross(crossRed, crossGreen, crossBlue);
+}
+
 /* 灯臂：一次点亮第 0 列至第 x 列（列号从 0 开始，含两端），其余列保持熄灭 */
 void Fu_t::lighten_special_arm(uint8_t x, uint8_t red, uint8_t green, uint8_t blue){
 	uint8_t col, y;
@@ -446,6 +468,7 @@ void Fu_t::lighten_steps(uint8_t step, uint8_t red, uint8_t green, uint8_t blue)
     /* 先清零灯带和灯臂：进度可加可减，step=0 即全灭 */
     //closeStrip();
     //closeArm();
+	//armFlowOn = false;
 
     /* 按步骤点亮灯带 */
     switch(step)
@@ -589,6 +612,7 @@ uint8_t Fu_t::gotHitRing(){
 
 /* 熄灭靶环：所有灯珠数据位写逻辑 0，其余复位段保持低电平，最后刷新 DMA */
 void Fu_t::closeCircle(){
+	crossOn = false;
 	/* 其余 224 项为复位段，占空比置 0 以保持低电平 */
 	for (uint16_t i = 0; i < NumCircle; i++)
 		WS::Buf_Circle[i] = 0; // 占空比为0，全为低电平

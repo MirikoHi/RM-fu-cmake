@@ -110,6 +110,9 @@ void startup(void){
         /* 灯臂箭头流水：非阻塞推进，满 500ms 左移一格 */
         Fu.armFlowTick();
 
+        /* 十字常亮：非阻塞刷新，满 50ms 重发一次当前画面 */
+        Fu.crossRefreshTick();
+
 #ifdef __DE_BUG
         /* 自测模式：直接打开命中检测，灯保持点亮 */
         Fu.hitEnable = true;
@@ -266,6 +269,7 @@ void startup(void){
                     if(Fu.stayState == false || shownColor != curColor || shownStep != big_show){
                         Fu.closeCircle();
                         HAL_Delay(10);
+                        Fu.closeArm();
                         Fu.color == blue ? Fu.lighten_steps(big_show, 0, 0, either_light) : Fu.lighten_steps(big_show, either_light, 0, 0);
                         HAL_Delay(10);
                         Fu.stayState = true;

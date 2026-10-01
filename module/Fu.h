@@ -167,6 +167,15 @@ public:
     /** @brief 灯臂箭头流水：当前颜色 */
     uint8_t armRed = 0, armGreen = 0, armBlue = 0;
 
+    /** @brief 十字刷新：是否正在常亮刷新 */
+    bool crossOn = false;
+
+    /** @brief 十字刷新：上一次刷新时间戳 */
+    uint32_t crossLastTick = 0;
+
+    /** @brief 十字刷新：当前颜色 */
+    uint8_t crossRed = 0, crossGreen = 0, crossBlue = 0;
+
 public:
     Fu_t() = default;
 
@@ -263,6 +272,11 @@ public:
      * @brief 灯臂：主循环每拍调用一次，满 500ms 向左推进一格
      */
     void armFlowTick(void);
+
+    /**
+     * @brief 十字：主循环每拍调用一次，满 50ms 重发一次当前画面
+     */
+    void crossRefreshTick(void);
 };
 
 /** 全局 Fu 实例 */
