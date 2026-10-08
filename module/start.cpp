@@ -85,6 +85,12 @@ static uint8_t shownRColor = 0xFF;
 
 /* 主循环入口：初始化 CAN 和显示，之后每 20ms 跑一圈“反馈 -> 解析命令 -> 状态机” */
 void startup(void){
+    // Fu.lightenCross(0, 0, 150);
+    // HAL_Delay(20);
+    // while(1){
+    //     // HAL_Delay(20);
+    //     Fu.crossRefreshTick();
+    // }
     /* CAN 初始化：配过滤器、开接收中断、启动外设 */
     canbox.CanInit();
 
@@ -110,7 +116,7 @@ void startup(void){
         /* 灯臂箭头流水：非阻塞推进，满 500ms 左移一格 */
         Fu.armFlowTick();
 
-        /* 十字常亮：非阻塞刷新，满 50ms 重发一次当前画面 */
+        /* cross50ms  */
         Fu.crossRefreshTick();
 
 #ifdef __DE_BUG

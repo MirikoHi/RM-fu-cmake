@@ -32,7 +32,7 @@ int16_t WS::Buf_arm[NumArm] = {0};
 #define ARM_ARROW_GAP    2                              /* 同一行相邻箭头之间的空格数 */
 #define ARM_FLOW_PERIOD  (ARM_ARROW_W + ARM_ARROW_GAP)  /* 5：沿列方向的重复周期 */
 #define ARM_FLOW_STEP_MS 100                            /* 每 0.5s 向左走一格 */
-#define CROSS_REFRESH_MS 50                             /* 十字每 50ms 重发一帧 */
+#define CROSS_REFRESH_MS 500                             /* 十字每 50ms 重发一帧 */
 
 /* 把 R/G/B 三个分量按 WS2812 的 GRB 顺序打包成一个 24 bit 数值 */
 uint32_t WS::WS281x_Color(uint32_t red, uint32_t green, uint32_t blue){
